@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <style type="text/css">
+      body {
+        color: rgb(0, 0, 0);
+        background-color: rgb(255, 255, 255);
+        font-family: Verdana, sans-serif;
+        margin-left: 0.25in;
+        margin-right: 0.25in;
+      }
+      a.career {
+        font-weight: bold;
+      }
+      a:hover {
+        color: rgb(0, 0, 255);
+        background-color: rgb(255, 253, 160);
+      }
+      code {
+        font-family: "Courier New", monospace;
+      }
+      div.center {
+        text-align: center;
+      }
+      h1 {
+        text-align: center;
+      }
+      h2 {
+        text-align: left;
+      }
+      h3 {
+        text-align: left;
+      }
+      h4 {
+        text-align: left;
+      }
+      h5 {
+        text-align: left;
+      }
+      hr {
+        height: 1px;
+        color: rgb(17, 59, 86);
+        background-color: transparent;
+      }
+      kbd {
+        font-family: "Courier New", monospace;
+      }
+      p {
+        text-align: justify;
+      }
+      p.author {
+        text-align: center;
+      }
+      p.footer {
+        text-align: justify;
+      }
+      pre {
+        font-family: "Courier New", monospace;
+      }
+      .educationquicklinks {
+        text-align: center;
+      }
+      .quicklinks {
+        text-align: right;
+      }
+      .red {
+        color: rgb(255, 0, 0);
+        background-color: rgb(255, 255, 255);
+      }
+      .green {
+        color: rgb(0, 128, 0);
+        background-color: rgb(255, 255, 255);
+      }
+      .blue {
+        color: rgb(0, 0, 192);
+        background-color: rgb(255, 255, 255);
+      }
+      .code {
+        background-color: #FFFFF0;
+        border: dashed black 1px;
+        padding-left: 10px;
+      }
+      .comment {
+        color: rgb(128,128,128);
+        font-weight: normal;
+        font-style: italic;
+      }
+      .table_header {
+        background: pink;
+      }
+      .table_name {
+        font-weight: bold;
+        vertical-align: top;
+      }
+      .table_desc {
+        font-weight: normal;
+        vertical-align: top;
+      }
+    </style>
+  </head>
+  <body>
+
+    <h1>Going Postal with postal.js</h1>
+    <p class="author">
+      by<br />
+      Nicholas Cloud, Software Engineer<br />
+      Object Computing, Inc. (OCI)
+    </p>
+
+<!-- outline
+- introduction
+  + two important aspects of code: isolation and communication
+  + classical vs. modular approach to code organization
+  + a need to communicate between modules, both client and server side
+
+- enter postal.js
+  + an in-memory service bus, open source, maintained by Jim Cowart
+  + uses messages rather than events
+  + different than DOM events
+  + different than EventEmitter events
+
+- postal.js on the client
+  + module eventing with callbacks
+  + module messaging with postal.js
+  + throw require.js into the mix (?)
+  + use with jQuery (maybe include posta.jquery.js example?)
+
+- postal.js on the server
+  + inter-module communication with postal
+  + intra-module communication with EventEmitter
+
+-->
+
+<!--
+    <h3>Minor Heading</h3>
+    <p>Paragraph Content</p>
+
+    <p>A code example that demonstrates <code>foo()</code>:
+      <pre><code>
+var f = function foo (bar) { 
+  return bar.substr(1);
+}
+      </code></pre>
+-->
+
+
+    <h2>References</h2>
+    <ul>
+      <li><a href="https://github.com/ifandelse/postal.js" title="postal.js Github repository">postal.js Github repository</a></li>
+      <li><a href="http://jsfiddle.net/ifandelse/NTPcT/" title="postal.js jsFiddle examples">postal.js jsFiddle examples</a></li>
+      <li><a href="http://www.twitter.com/ifandelse" title="Jim Cowart (@ifandelse) on Twitter">Jim Cowart (@ifandelse) on Twitter</a></li>
+      <li><a href="http://freshbrewedcode.com/jimcowart/2011/12/05/client-side-messaging-with-postal-js-part-1/" title="Client-side Messaging in JavaScript – Part 1 (Postal.js)">Client-side Messaging in JavaScript – Part 1 (Postal.js)</a></li>
+      <li><a href="http://freshbrewedcode.com/jimcowart/2012/02/02/client-side-messaging-in-javascript-part-2-postal-js/" title="Client-side Messaging in JavaScript – Part 2 (Postal.js)">Client-side Messaging in JavaScript – Part 2 (Postal.js)</a></li>
+      <li><a href="http://freshbrewedcode.com/jimcowart/2012/03/19/client-side-messaging-in-javascript-part-3-anti-patterns/" title="Client-side messaging in JavaScript – Part 3 (anti-patterns)">Client-side messaging in JavaScript – Part 3 (anti-patterns)</a></li>
+    </ul>
+
+  </body>
+</html>
