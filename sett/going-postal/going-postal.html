@@ -108,6 +108,50 @@
       Object Computing, Inc. (OCI)
     </p>
 
+    <h2>Do as I say, not as I do</h2>
+
+    <p>
+      There are two important ideas that are common to applications developed on all platforms, in all languages, and in all paradigms.
+    </p>
+
+    <p>
+      The first idea is that code should, to some extent, be isolated from other code.  In classical languages encapsulation is accomplished by access modifiers on classes and members; in functional languages this is accomplished with closures; and in procedural languages this is accomplished by the religious inclusion of underscores in structure member names, a ritual which reminds other developers to behave themselves and pretend that said members are, in fact, private.
+    </p>
+
+    <p>
+      The second idea is that these isolated pieces of code, whilst hiding their implementations from prying eyes, nevertheless must communicate with each other, much like those awkward conversations we all have every year at Thanksgiving.  Regardless of how code is organized, if it cannot communicate or message other code, our programs would be severely restricted and code reuse would cease to be posible.
+    </p>
+
+    <p>
+      On the surface, both of these ideas might appear to be antithetical.  How can hidden or encapsulated code, about which external code must necessarily be agnostic, communicate with the very code it hides from?  In classical languages, messaging occurs through abstract APIs and interfaces, so that dispirate units of code know how to message each other, but only through a gatekeeper.  Private members and data are obfuscated behind a coarse set of public members that control the state of objects.  Objects only talk to each other through these gatekeepers.  In functional languages, the gatekeepers are higher order functions, or functions that are composed of other functions.  These act as "wrappers" to a more complicated set of transformations and again, present a coarse API to which other functions may send "messages".  In these languages, then, the class and the function are the units of code composition respectively, and the units of communication between encapsultated code.  Classes and functions, however, are rarely useful by themselves, and are often organized into class libraries, or function modules, so that they can use other classes and functions to accomplish tasks that exceed their immediate concerns.  Encapsulation and communication ensure that all of these constructs play nicely with their peers.
+    </p>
+
+    <h2>JavaScript: the chimera</h2>
+
+    <p>
+      One day Brendan Eich forgot to have his morning shot of espresso and, in a decafinated stupor, creatd the JavaScript programming language.  I cannot vouch for the accuracy of this claim but, as this is not a history exposition, we will assume the truth of it.  JavaScript is unique because it is a functional language with classical trappings.  JavaScript code may be organized according to classical conventions primarily through the use of JavaScript constructor functions, or it may be organized according to functional conventions in which individual functions are composed and passed as arguments to other functions.  Regardless of organization style, the same general principles of encapsulation and communication apply to JavaScript code.
+    </p>
+
+    <p>
+      JavaScript objects can message each other via methods, and JavaScript functions can message each other via invocation.  In the dark and distant past, it was common for constructor functions (classes) and functions to live in the global JavaScript scope, which meant that all classes and functions were accesible everywhere.  This was often mitigated by creating classes and functions as public members of a global, named object literal, so that what was once <code>var bar = function () {...};</code> became <code>var Foo = {}; Foo.bar = function () {...};</code>.  This was a much more pleasant situation, but it did nothing to prevent accidental assignment from happening to members of the named object literal, since it was still in the global scope.
+    </p>
+
+    <p>
+      A far more elegant solution to this problem has come into favor in modern times: the JavaScript module pattern.  Because JavaScript is a functional language, it can leverage closures to give objects returned from a function access to what would otherwise be "private" data and code within the function.  This object then becomes a public API to the code contained within its closure function.  Instead of organizing classes and functions in the global scope, or making them members of a global object, these constructs can be declared inside of a large function closure and only the parts that should be exposed publically can be returned from the closure function invocation, creating a form of encapsulation.  Other code can "message" code within the closure by invoking members on the returned object (or, if the returned object is a function itself, invoking it directly).
+    </p>
+
+    <p>
+      The module pattern solves the problem of encapsulation, but what we still have is a failure to communicate.  We want modules to message other modules so we can build composible JavaScript applications.  Since modules are large function closures, it makes sense that the closure might accept, as function arguments, the public objects returned from other module closures.  Messages could be sent to, and received from, other modules by interacting with these objects.  This is, in fact, how many JavaScript programs are structured.  There are even libraries such as <a href="http://requirejs.org/" target="_blank" title="require.js">require.js</a> that will resolve and "inject" module dependencies for the developer.  This approach works well for a manageable set of modules, but what happens when modules, like Tribbles, begin to multiply?  What happens when one operation in a given module affects several, or all other modules in an application?  The list of dependencies begins to grow, and every time a new module is introduced, otherwise working code must be changed.
+    </p>
+
+    <p>
+      This can be avoided. We have the technology. We can build it.
+    </p>
+
+    <h2>Sometimes going postal <em>is</em> the answer</h2>
+
+    
+
 <!-- outline
 - introduction
   + two important aspects of code: isolation and communication
