@@ -150,7 +150,15 @@
 
     <h2>Sometimes going postal <em>is</em> the answer</h2>
 
-    
+    <p>
+      It is fortunate for us that a solution to this problem already exists: the message bus.  Gregor Hohpe, in the excellent volume <em>Enterprise Integration Patterns</em>, defines a message bus as "a common command set, and a messaging infrastructure to allow different systems to communicate through a shared set of interfaces."<sup><a href="#fn1">1</a></sup> While JavaScript is hardly identified with "enterprise architecture" (though, oddly enough, it is probably found in nearly every enterprise application in some way or another), the message bus pattern is still an elegant approach to decoupling an application.  <a href="https://github.com/ifandelse/postal.js" target="_blank">postal.js</a> is an in-memory JavaScript message bus, maintained as an open source project by Jim Cowart, "husband, father, architect, developer, tea drinker"<sup><a href="#fn2">2</a></sup>, and international man of mystery. (I may have embellished that last part.)  According to the postal.js README:
+      <blockquote cite="https://github.com/ifandelse/postal.js">"Using a local message bus can enable to you de-couple your web application's components in a way not possible with other 'eventing' approaches. In addition, strategically adopting messaging at the 'seams' of your application (e.g. - between modules, at entry/exit points for browser data and storage) can not only help enforce better overall architectural design, but also insulate you from the risks of tightly coupling your application to 3rd party libraries."<sup><a href="#fn3">3</a></sup></blockquote>
+    </p>
+
+    <p>
+      If you use JavaScript on the client, there is a good chance you also use jQuery or some other DOM abstraction library to handle DOM events and perhaps create your own custom events.  If you are writing JavaScript on the server you probably use node.js and the EventEmitter object to create and handle events as well.  postal.js does not replace these eventing mechanisms, but instead augments an application by providing a common messaging layer between modules that, themselves, leverage these eventing technologies internally.
+    </p>
+
 
 <!-- outline
 - introduction
@@ -159,20 +167,40 @@
   + a need to communicate between modules, both client and server side
 
 - enter postal.js
-  + an in-memory service bus, open source, maintained by Jim Cowart
-  + uses messages rather than events
-  + different than DOM events
-  + different than EventEmitter events
+  + definition and characteristics of a message bus (Fowler)
+  + an in-memory message bus, open source, maintained by Jim Cowart
+  + basic postal.js API
+    * topics
+    * channels
+    * publish/subscribe
+  + postal.js on the client
+    * DOM events vs. messages
+    * jQuery and user-defined events
+    * organizing code into modules (require.js)
+    * module eventing with callbacks
+    * module messaging with postal.js
+    * throw require.js into the mix (?)
+    * use with jQuery (maybe include postal.jquery.js example?)
+  + postal.js on the server
+    * postal vs. EventEmitter
+      - EE requires inheritance, and thus vertical coupling
+      - the postal bus (or channels) is referenced, but not inherited
+      - objects that inherit from EE must interact with other objects to subscribe to events
+      - objects that use postal only interact with the bus
+    * inter-module communication with postal
+    * intra-module communication with EventEmitter
 
-- postal.js on the client
-  + module eventing with callbacks
-  + module messaging with postal.js
-  + throw require.js into the mix (?)
-  + use with jQuery (maybe include posta.jquery.js example?)
-
-- postal.js on the server
-  + inter-module communication with postal
-  + intra-module communication with EventEmitter
+- advanced postal.js API
+  + defer() //0.6
+  + ignoreDuplicates()
+  + disposeAfter(maxCalls)
+  + withConstraint(predicate) / withConstraints(predicates)
+  + withContext(context)
+  + withDebounce(milliseconds) //0.6
+  + withDelay(milliseconds)
+  + withPriority(priority)
+  + withThrottle(milliseconds)
+  
 
 -->
 
@@ -188,15 +216,23 @@ var f = function foo (bar) {
       </code></pre>
 -->
 
+    <h2>Footnotes</h2>
+    <ol>
+      <li><a name="fn1" />Hohpe, Gregor. <em>Enterprise Integration Patterns</em>. 2004 Pearson Education, Inc. p. 139.</li>
+      <li><a name="fn2" />Cowart, Jim. "About". <a href="http://freshbrewedcode.com/jimcowart/about/" target="_blank">Fresh Brewed Code</a>. n.d. web 13 May 2012.</li>
+      <li><a name="fn3" />Cowart, Jim. "README". <a href="https://github.com/ifandelse/postal.js" target="_blank">ifandelse/postal.js</a>. Github.  23 April 2012.</li>
+
+      <li><a name="fnX" /><a href="http://nodejs.org/api/events.html">EventEmitter</a> API documentation</a></li>
+    </ol>
 
     <h2>References</h2>
     <ul>
       <li><a href="https://github.com/ifandelse/postal.js" title="postal.js Github repository">postal.js Github repository</a></li>
       <li><a href="http://jsfiddle.net/ifandelse/NTPcT/" title="postal.js jsFiddle examples">postal.js jsFiddle examples</a></li>
       <li><a href="http://www.twitter.com/ifandelse" title="Jim Cowart (@ifandelse) on Twitter">Jim Cowart (@ifandelse) on Twitter</a></li>
-      <li><a href="http://freshbrewedcode.com/jimcowart/2011/12/05/client-side-messaging-with-postal-js-part-1/" title="Client-side Messaging in JavaScript – Part 1 (Postal.js)">Client-side Messaging in JavaScript – Part 1 (Postal.js)</a></li>
-      <li><a href="http://freshbrewedcode.com/jimcowart/2012/02/02/client-side-messaging-in-javascript-part-2-postal-js/" title="Client-side Messaging in JavaScript – Part 2 (Postal.js)">Client-side Messaging in JavaScript – Part 2 (Postal.js)</a></li>
-      <li><a href="http://freshbrewedcode.com/jimcowart/2012/03/19/client-side-messaging-in-javascript-part-3-anti-patterns/" title="Client-side messaging in JavaScript – Part 3 (anti-patterns)">Client-side messaging in JavaScript – Part 3 (anti-patterns)</a></li>
+      <li><a href="http://freshbrewedcode.com/jimcowart/2011/12/05/client-side-messaging-with-postal-js-part-1/" title="Client-side Messaging in JavaScript -- Part 1 (Postal.js)">Client-side Messaging in JavaScript -- Part 1 (Postal.js)</a></li>
+      <li><a href="http://freshbrewedcode.com/jimcowart/2012/02/02/client-side-messaging-in-javascript-part-2-postal-js/" title="Client-side Messaging in JavaScript -- Part 2 (Postal.js)">Client-side Messaging in JavaScript -- Part 2 (Postal.js)</a></li>
+      <li><a href="http://freshbrewedcode.com/jimcowart/2012/03/19/client-side-messaging-in-javascript-part-3-anti-patterns/" title="Client-side messaging in JavaScript -- Part 3 (anti-patterns)">Client-side messaging in JavaScript -- Part 3 (anti-patterns)</a></li>
     </ul>
 
   </body>
