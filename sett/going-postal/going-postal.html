@@ -189,9 +189,22 @@
       - objects that use postal only interact with the bus
     * inter-module communication with postal
     * intra-module communication with EventEmitter
+-->
 
+    <h2>Basic API</h2>
+
+    <h3><code>postal.channel(topic)</code></h3>
+
+    <!-- topics, wildcards -->
+
+    <h3><code>channel.subscribe(callback)</code></h3>
+
+    <h3><code>channel.publish(data)</code></h3>
+
+    <h3><code>channel.unsubscribe()</code></h3>
+
+<!--
 - advanced postal.js API
-  + defer() //0.6
   + ignoreDuplicates()
   + disposeAfter(maxCalls)
   + withConstraint(predicate) / withConstraints(predicates)
@@ -200,9 +213,273 @@
   + withDelay(milliseconds)
   + withPriority(priority)
   + withThrottle(milliseconds)
-  
-
+  + defer() //0.6
 -->
+
+    <h2>Subscription API</h2>
+
+    <p>The subscription object in postal.js has a number of helpful methods that provide precise control over how and when subscription callbacks are executed.  These API methods may be used individually, or chained together for more complicated callback scenarios.</p>
+
+    <h3><code>ignoreDuplicates()</code></h3>
+
+    <p>
+      <em>Limits subscription handlers to one execution per topic.</em>
+    </p>
+
+    <p>
+      It is often desireable to limit the number of times a program can respond to a particular application event.  This is especially important for user interaction scenarios when an accidental button double-click could mean the difference between a happy customer with a single credit card charge or an irate customer paying overdraft fees.
+    </p>
+
+    <p>
+      In the following example, a fictitious shopping cart limits the number of times a customer can add a shirt to her order. The total price only changes when unique items are added to the cart.
+    </p>
+
+    <pre><code>
+var total = 0;
+postal.subscribe('#.selected', function (item) {
+  total += item.price;
+}).ignoreDuplicates();
+
+postal.publish('shirt.selected', {price: 10});
+postal.publish('slacks.selected', {price: 15});
+postal.publish('shoes.selected', {price: 20});
+//duplicate is ignored
+postal.publish('shirt.selected', {price: 10});
+
+//total price is 10 + 15 + 20 = 45
+    </code></pre> 
+
+    <h3><code>disposeAfter(maxCalls)</code></h3>
+
+    <p>
+      <em>Automatically unsubscribes a channel after a given number of handler invocations.</em>
+    </p>
+
+    <p>
+      An application may have an interest in system events, but at some threshold, ceases to care whether those events continue or not.  A channel subscription can be instructued to automatically "dispose" itself (unsubscribe, really) after it has handled a certain number of events.  If events are further published on the channel, the unsubscribed event handler will not be invoked.
+    </p>
+
+    <p>
+      Below I am interested in capturing a user's top three movies.  Once they have selected three their choice is irreversable, so I instruct the channel to unsubscribe once it has handled three events.
+    </p>
+
+    <pre><code>
+var favorites = [];
+var c = postal.channel('favorite.movies');
+c.subscribe(function (m) {
+  favorites.push(m);
+}).disposeAfter(3);
+
+postal.publish('favorite.movies', 'Hot Fuzz');
+postal.publish('favorite.movies', 'Blade Runner');
+postal.publish('favorite.movies', 'TRON');
+//oh darn, too late--already unsubscribed!
+postal.publish('favorite.movies', 'Star Wars');
+
+//favorite moves are: Hot Fuzz, Blade Runner, and TRON
+    </code></pre>
+
+    <h3><code>withConstraint(predicate) / withConstraints(predicates)</code></h3>
+
+    <p>
+      <em>Will prevent the subscription handler from executing if a constraint is not met.</em>
+    </p>
+
+    <p>
+      Although we could add conditional logic in the body of an event handler, postal provides methods whereby we can specify one or more conditions that must be met in order for the event handler to be executed when a publish occurs on the channel.  This keeps the event handler clean, unpolluted with criteria logic that is related to the behavior of the subscription.
+    </p>
+
+    <p>
+      If you have seen <em>Back to the Future</em> you know that the one constant of time travel is that a time machine must reach 88 MPH to traverse the ages.  Undoubtedly Doc Brown's code looked something like this:
+    </p>
+
+    <pre><code>
+var speed = 88;
+
+postal.channel('vehicle.accelerated').subscribe(function (passenger) {
+  timeTravel(passenger);
+}).withConstraint(function () {
+  return speed === 88;
+});
+
+postal.channel('vehicle.accelerated').publish('Marty');
+    </code></pre>
+
+    <h3><code>withContext(context)</code></h3>
+
+    <p>
+      <em>Determines the value of <code>this</code> within a subscription callback.</em>
+    </p>
+
+    <p>
+      The JavaScript <code>this</code> keyword is schizophrenic.  Its identity changes depending on the scope in which it is used, and it is often not at all predictable.  A free-standing function is attched automatically to the global object (<code>window</code> in the browser), so the value of <code>this</code> within that function is the global object.  A function that is assigned to an object property (a method) will reference that object when <code>this</code> is used. The <code>Function</code> object prototype also has both <code>call()</code> and <code>apply()</code> methods which allow the value of <code>this</code> to be set when a function is invoked.
+    </p>
+
+    <p>
+      Because postal subscriptions use anonymous functions as callbacks, the value of <code>this</code> within the callback is, by default, the global object.  The postal API allows this to be manipulated, however, so that when a callback is invoked, the <code>this</code> variable may be set deterministically.  In the example below I want to modify a DOM element when my coffee is ready, and because I am lazy, I use <code>withContext()</code> to capture a reference to my "mug" DOM element, which will be the value of <code>this</code> within my callback.
+    </p>
+
+    <p>
+      It is also important to note that postal caches the object passed into <code>withContext()</code>, so in this case the DOM is traversed only once for the "mug" element.  All callbacks will have a reference to the exact same object.
+    </p>
+
+    <pre><code>
+var c = postal.channel('coffee.ready');
+
+c.subscribe(function (data) {
+  //this === window
+});
+
+c.subscribe(function (data) {
+  //this === $('#mug')
+}).withContext(
+    (function () { 
+        console.log('this will happen once');
+        return $('#mug');
+    }())
+);
+
+postal.channel('coffee.ready').publish({});
+postal.channel('coffee.ready').publish({});
+postal.channel('coffee.ready').publish({});
+    </code></pre>
+
+    <h3><code>withDebounce(milliseconds)</code></h3>
+
+    <p>
+      <em>Delays execution of the callback for a given number of milliseconds after the last time the callback would have been invoked.</em>
+    </p>
+
+    <p>
+      My wife often says many things to me over a very short period of time.  She is very good at communicating, but I am not as good at listening.  I tend to remember the last thing she tells me but everything prior to that evades my short term memory.  This is because, by default, I have <code>debounce</code> enabled.
+    </p>
+
+    <p>
+      In postal, <code>debounce()</code> is used to delay the execution of a callback by a specific period of time <em>after the last time the callback would have been invoked had the delay not been in place.</em>  When a stream of messages are published to postal in rapid succession, often a handler is only interested in the last of the messages, which represents the final state of some operation.  When <code>debounce()</code> is called on a subscription object, postal will delay the execution of the subscription callback by the duration specified.  If postal receives a message for the handler before this timeframe has elapsed, it resets the timer to zero and begins to wait again.  If the time elapses with no further interruption, the callback is invoked.
+    </p>
+
+    <p>
+      In the following example I am listening for the <code>window.resize</code> event, which is a notorously noisy.  The event fires often as the user drags the edge of the browser, but I am really only interested in the final size of the viewport when the resizing has been completed.  I use <code>debounce()</code> to delay the invocation of my callback for exactly one second each time a resize message is published to postal.
+    </p>
+
+    <pre><code>
+var c = postal.channel('resize');
+
+c.subscribe(function (dim) {
+  $('#movie').height(dim.h / 2)
+    .width(dim.w / 2);
+}).withDebounce(1000);
+
+$(window).resize(function () {
+  postal.channel('resize').publish({
+    h: this.innerHeight,
+    w: this.innerWidth
+  });
+});
+    </code></pre>
+
+    <h3><code>withDelay(milliseconds)</code></h3>
+
+    <p>
+      <em>Delays the subscription callback execution for a given number of milliseconds.</em>
+    </p>
+
+    <p>
+      A delay is similar to a debounce in that they both defer the invocation of a callback until some future point in time.  Unlike a debounce, a delay does not discard all publishes messages except the last.  A delayed callback will still react to all messages published to its channel during the delay period, but it defers <em>all</em> invocations.
+    </p>
+
+    <p>
+      Waking up in the morning can be a difficult task, so I can delay the inevitable by hitting the snooze button on my alarm clock.  In the example below I am only publishing one "wakeup.alarm" message to the bus, but if I had published more, the callback would execute for each message published.
+    </p>
+
+    <pre><code>
+var c = postal.channel('wakeup.alarm');
+
+//going to snooze for 30 mins.
+var snoozeDuration = (30 * 60 * 1000);
+
+c.subscribe(function (data) {
+  
+  //make sure this lazy ass gets out of bed!
+  alarm.buzz({volume: data.volume});
+
+}).withDelay(snoozeDuration);
+
+postal.channel('wakeup.alarm').publish({volume: 'annoying'});
+    </code></pre>
+
+    <h3><code>withPriority(priority)</code></h3>
+
+    <p>
+      <em>Associates a subscription callback with an arbitrary priority number; higher priority callbacks are triggered first.</em>
+    </p>
+
+    <p>
+      Typically the order in which messages are handled on a message bus is irrelevant, but occassionally it is helpful to specify the order in which handlers react to published messages.  The subscription object provides a <code>withPriority()</code> method that accpets a number indicating the relative priority its handler should receive.  A higher number will take precednece over a lower number.
+    </p>
+
+    <p>
+      I've created to handlers that respond to a stock event messages--one handler represents stock holders, the other, inside traders.  Even though the stock holder subscription is created first, its lower priority number means that it will be executed after the inside trader handler.
+    </p>
+
+    <pre><code>
+var c = postal.channel('stock.event');
+
+var stockholder = function (data) {
+  console.log('Stockholder knows!');
+};
+
+var insider = function (data) {
+  //will always know first!
+  console.log('Insider knows!');
+};
+
+c.subscribe(stockholder).withPriority(75);
+c.subscribe(insider).withPriority(100);
+
+postal.channel('stock.event').publish({action: 'sell!'});
+    </code></pre>
+
+    <h3><code>withThrottle(milliseconds)</code></h3>
+
+    <p>
+      <em>Prevents a subscription callback from being invoked more than once in a given time frame (in milliseconds).</em>
+    </p>
+
+    <p>
+      A throttled subscription will invoke its handler once, then wait for a specified period of time before invoking it again, regardless of the number of messages that are published to that channel during that time.  Once the throttle period has elapsed, the handler may then respond to another message, but will ignore subsequent messages until the throttle period has, again, ellapsed.  This allows a subscription to effectively "ignore" a steady stream of messages, perfering to respond to individual messages, at timed intervals, instead.  Like <code>debounce()</code> and <code>withDelay()</code>, this API method is designed to mitigate the demand high message traffic.
+    </p>
+
+    <p>
+      GPS tracking is a good source of constant, streaming data. In the example that follows I simulate the movement of a high-speed with a recursive function that increments its position on a linear path.  Each time the movement function executes--every 0.5 seconds--it publishes an event to the bus.  The subscription handler has a throttle of two seconds because the movement data is being published too quickly.
+    </p>
+
+    <pre><code>
+var c = postal.channel('dhs.track.movement');
+
+c.subscribe(function (pos) {
+  console.log('Moved to ' + pos);
+}).withThrottle(2000);
+
+(function move (timesMoved) {
+  if (timesMoved === 50) return;
+  postal.channel('dhs.track.movement').publish(timesMoved);
+  setTimeout(function () {
+    move(timesMoved + 1);
+  }, 500);
+}(0));
+    </code></pre>
+
+    <h3><code>defer()</code></h3>
+
+    <p>
+      <em>Prevents the callback from executing until the current execution stack is cleared. Useful for long computations that could make the UI non-responsive.</em>
+    </p>
+
+    <pre><code>
+
+
+    </code></pre>
 
 <!--
     <h3>Minor Heading</h3>
@@ -221,8 +498,9 @@ var f = function foo (bar) {
       <li><a name="fn1" />Hohpe, Gregor. <em>Enterprise Integration Patterns</em>. 2004 Pearson Education, Inc. p. 139.</li>
       <li><a name="fn2" />Cowart, Jim. "About". <a href="http://freshbrewedcode.com/jimcowart/about/" target="_blank">Fresh Brewed Code</a>. n.d. web 13 May 2012.</li>
       <li><a name="fn3" />Cowart, Jim. "README". <a href="https://github.com/ifandelse/postal.js" target="_blank">ifandelse/postal.js</a>. Github.  23 April 2012.</li>
-
+<!--
       <li><a name="fnX" /><a href="http://nodejs.org/api/events.html">EventEmitter</a> API documentation</a></li>
+-->
     </ol>
 
     <h2>References</h2>
