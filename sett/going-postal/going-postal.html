@@ -108,7 +108,14 @@
       Object Computing, Inc. (OCI)
     </p>
 
-    <h2>Do as I say, not as I do</h2>
+<!--
+- introduction
+  + two important aspects of code: isolation and communication
+  + classical vs. modular approach to code organization
+  + a need to communicate between modules, both client and server side
+-->
+
+    <h2>Two Principles</h2>
 
     <p>
       There are two important ideas that are common to applications developed on all platforms, in all languages, and in all paradigms.
@@ -126,7 +133,7 @@
       On the surface, both of these ideas might appear to be antithetical.  How can hidden or encapsulated code, about which external code must necessarily be agnostic, communicate with the very code it hides from?  In classical languages, messaging occurs through abstract APIs and interfaces, so that dispirate units of code know how to message each other, but only through a gatekeeper.  Private members and data are obfuscated behind a coarse set of public members that control the state of objects.  Objects only talk to each other through these gatekeepers.  In functional languages, the gatekeepers are higher order functions, or functions that are composed of other functions.  These act as "wrappers" to a more complicated set of transformations and again, present a coarse API to which other functions may send "messages".  In these languages, then, the class and the function are the units of code composition respectively, and the units of communication between encapsultated code.  Classes and functions, however, are rarely useful by themselves, and are often organized into class libraries, or function modules, so that they can use other classes and functions to accomplish tasks that exceed their immediate concerns.  Encapsulation and communication ensure that all of these constructs play nicely with their peers.
     </p>
 
-    <h2>JavaScript: the chimera</h2>
+    <h2>JavaScript: a chimera</h2>
 
     <p>
       One day Brendan Eich forgot to have his morning shot of espresso and, in a decafinated stupor, creatd the JavaScript programming language.  I cannot vouch for the accuracy of this claim but, as this is not a history exposition, we will assume the truth of it.  JavaScript is unique because it is a functional language with classical trappings.  JavaScript code may be organized according to classical conventions primarily through the use of JavaScript constructor functions, or it may be organized according to functional conventions in which individual functions are composed and passed as arguments to other functions.  Regardless of organization style, the same general principles of encapsulation and communication apply to JavaScript code.
@@ -148,7 +155,18 @@
       This can be avoided. We have the technology. We can build it.
     </p>
 
-    <h2>Sometimes going postal <em>is</em> the answer</h2>
+<!--
+- enter postal.js
+  + definition and characteristics of a message bus (Fowler)
+  + an in-memory message bus, open source, maintained by Jim Cowart
+  + basic postal.js API
+    * topics
+    * channels
+    * publish/subscribe
+
+-->
+
+    <h2>When going postal <em>is</em> the answer</h2>
 
     <p>
       It is fortunate for us that a solution to this problem already exists: the message bus.  Gregor Hohpe, in the excellent volume <em>Enterprise Integration Patterns</em>, defines a message bus as "a common command set, and a messaging infrastructure to allow different systems to communicate through a shared set of interfaces."<sup><a href="#fn1">1</a></sup> While JavaScript is hardly identified with "enterprise architecture" (though, oddly enough, it is probably found in nearly every enterprise application in some way or another), the message bus pattern is still an elegant approach to decoupling an application.  <a href="https://github.com/ifandelse/postal.js" target="_blank">postal.js</a> is an in-memory JavaScript message bus, maintained as an open source project by Jim Cowart, "husband, father, architect, developer, tea drinker"<sup><a href="#fn2">2</a></sup>, and international man of mystery. (I may have embellished that last part.)  According to the postal.js README:
@@ -159,37 +177,16 @@
       If you use JavaScript on the client, there is a good chance you also use jQuery or some other DOM abstraction library to handle DOM events and perhaps create your own custom events.  If you are writing JavaScript on the server you probably use node.js and the EventEmitter object to create and handle events as well.  postal.js does not replace these eventing mechanisms, but instead augments an application by providing a common messaging layer between modules that, themselves, leverage these eventing technologies internally.
     </p>
 
+    <p>
+      All features of postal.js are accessed via the <code>postal</code> object.  In the browser, the <code>postal</code> object is typically attached to the <code>window</code> object by default.  I explained ealier that, while this is a workable solution, global objects are typically a bad idea for many different reasons.  Instead, wrapping code in closures and passing dependencies to them as function parameters is an excellent way to avoid polluting the global scope.  Fortunately, postal.js ships with two alternate scripts that conform to this pattern:
 
-<!-- outline
-- introduction
-  + two important aspects of code: isolation and communication
-  + classical vs. modular approach to code organization
-  + a need to communicate between modules, both client and server side
+      <ul>
+        <li>an AMD-compatible<sup><a href="#fn4">4</a></sup> script that can be used with AMD loaders like require.js, and</li>
+        <li>a node.js module that assigns the <code>postal</code> object to <code>exports</code> which can be accessed by other node.js modules
+      </ul>
 
-- enter postal.js
-  + definition and characteristics of a message bus (Fowler)
-  + an in-memory message bus, open source, maintained by Jim Cowart
-  + basic postal.js API
-    * topics
-    * channels
-    * publish/subscribe
-  + postal.js on the client
-    * DOM events vs. messages
-    * jQuery and user-defined events
-    * organizing code into modules (require.js)
-    * module eventing with callbacks
-    * module messaging with postal.js
-    * throw require.js into the mix (?)
-    * use with jQuery (maybe include postal.jquery.js example?)
-  + postal.js on the server
-    * postal vs. EventEmitter
-      - EE requires inheritance, and thus vertical coupling
-      - the postal bus (or channels) is referenced, but not inherited
-      - objects that inherit from EE must interact with other objects to subscribe to events
-      - objects that use postal only interact with the bus
-    * inter-module communication with postal
-    * intra-module communication with EventEmitter
--->
+      Regardless of how your code is organized and your dependencies are managed, however, postal concepts and API calls remain the same.
+    </p>
 
     <h3>Channels and Topics</h3>
 
@@ -258,7 +255,27 @@ shippingChannel.subscribe(function (data) {
       The "hash" or "pound" symbol can be used as wildcard for <em>one segment of a topic name</em>.  In our fulfillment example, I used the <code>#</code> wildcard to replace the specific <code>ground</code> and <code>air</code> portions of the topic name, since I was only interested in the fact that an order had actually shipped.  The "star" or "asterisk" symbol may be used as a wildcard for any consecutive characters in a topic name, and is not limited to individual segments like the hash symbol.  If I were interested in all order events, for example, I might use the topic <code>order*</code> when requesting a channel.
     </p>
 
-    <h3></h3>
+<!--
+- postal.js on the client
+  + DOM events vs. messages
+  + jQuery and user-defined events
+  + organizing code into modules (require.js)
+  + module eventing with callbacks
+  + module messaging with postal.js
+  + throw require.js into the mix (?)
+  + use with jQuery (maybe include postal.jquery.js example?)
+-->
+
+<!--
+- postal.js on the server
+  + postal vs. EventEmitter
+    * EE requires inheritance, and thus vertical coupling
+    * the postal bus (or channels) is referenced, but not inherited
+    * objects that inherit from EE must interact with other objects to subscribe to events
+    * objects that use postal only interact with the bus
+  + inter-module communication with postal
+  + intra-module communication with EventEmitter  
+-->
 
 <!--
 - advanced postal.js API
@@ -273,7 +290,7 @@ shippingChannel.subscribe(function (data) {
   + defer() //0.6
 -->
 
-    <h2>Subscription API</h2>
+    <h3>Subscriptions</h3>
 
     <p>The subscription object in postal.js has a number of helpful methods that provide precise control over how and when subscription callbacks are executed.  These API methods may be used individually, or chained together for more complicated callback scenarios.  <em>Note that in most of these examples I am using the global "/" channel by ommitting the channel argument from the <code>postal.channel()</code> call.  This ommission is a definite indication of laziness.</em></p>
 
@@ -306,7 +323,7 @@ postal.channel('shop', 'slacks.selected').publish({price: 15});
 postal.channel('shop', 'shoes.selected').publish({price: 20});
 
 //total price is 10 + 15 + 20 = 45
-console.log(total);​
+console.log(total);
     </code></pre> 
 
     <h3><code>disposeAfter(maxCalls)</code></h3>
@@ -536,10 +553,42 @@ c.subscribe(function (pos) {
       <em>Prevents the callback from executing until the current execution stack is cleared. Useful for long computations that could make the UI non-responsive.</em>
     </p>
 
+    <p>
+      One key principle of user interface design is that the user should not be kept waiting.  A responsive UI is a friendly UI.  Since JavaScript is executed on a single thread in the browser, it must use clever tricks to simulate parallel operations.  Using a subscription's <code>defer()</code> method effectively short-circuits these tricks, and forces the runtime to finish what it's doing before the event handler executes its code.  This allows the UI to stay responsive for as long as possible before performing resource-intensive operations.
+    </p>
+
     <pre><code>
+var largeDataSet = {}; //lots of data in here
 
+var c = postal.channel('schedule', 'query');
+c.subscribe(function (query) {
+  var item, results = [];
+  for (item in largeDataSet) {
+    if (!largeDataSet.hasOwnProperty(item)) continue;
+    if (query.matches(item)) {
+      results.push(item);
+    }
+  }
+  postal.channel('schedule', 'filter').publish(results);
+}).defer();
 
+//elsewhere...
+$('input[type="checkbox"]').change(function () {
+  var checkbox = this;
+  var query = {
+    matches: function (item) {
+      return item.title === checkbox.value;
+    }
+  };
+  postal.channel('schedule', 'query').publish(query);
+});
     </code></pre>
+
+    <h2>Putting it all together</h2>
+
+    
+
+
 
 <!--
     <h3>Minor Heading</h3>
@@ -558,6 +607,7 @@ var f = function foo (bar) {
       <li><a name="fn1" />Hohpe, Gregor. <em>Enterprise Integration Patterns</em>. 2004 Pearson Education, Inc. p. 139.</li>
       <li><a name="fn2" />Cowart, Jim. "About". <a href="http://freshbrewedcode.com/jimcowart/about/" target="_blank">Fresh Brewed Code</a>. n.d. web 13 May 2012.</li>
       <li><a name="fn3" />Cowart, Jim. "README". <a href="https://github.com/ifandelse/postal.js" target="_blank">ifandelse/postal.js</a>. Github.  23 April 2012.</li>
+      <li><a name="fn4" />cmosher01. "AMD". <a href="https://github.com/amdjs/amdjs-api/wiki/AMD" target="_blank">amdjs/amdjs-api</a>. Github.</li>
 <!--
       <li><a name="fnX" /><a href="http://nodejs.org/api/events.html">EventEmitter</a> API documentation</a></li>
 -->
