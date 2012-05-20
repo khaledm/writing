@@ -191,17 +191,74 @@
     * intra-module communication with EventEmitter
 -->
 
-    <h2>Basic API</h2>
+    <h3>Channels and Topics</h3>
 
-    <h3><code>postal.channel(topic)</code></h3>
+    <p>
+      When I send a letter to a friend who lives in another city, I specify both the city, state, and street address to which the message will be delivered.  It is entirely possible that a street in another city may share the same name as my friend's street (e.g., Washington Street), but because I have "namespaced" the address with the city in which my friend lives, the post office knows exactly which street is meant.
+    </p>
 
-    <!-- topics, wildcards -->
+    <p>
+      Messages are routed by the message bus according to the <em>channel</em> on which they are published, and the <em>toipc</em> the message specifies.  A channel is a logical container for topics.  Channel names must be unique, but topics, like streets in a city, must only be unique for the channel of which they are a part.  When a message is placed on the message bus both a channel and topic are specified, and only handlers which listen for that topic, on that specific channel, will receive that message.
+    </p>
 
-    <h3><code>channel.subscribe(callback)</code></h3>
+    <p>
+      To add a message subscription, a channel object is created by invoking the <code>posta.channel()</code> method, supplying one set of the following arguments:
+      <ul>
+        <li>channel name [string], topic name [string]; <strong>or</strong></li>
+        <li>an object with <code>channel</code> [string] and <code>topic</code> [string] properties; <strong>or</strong></li>
+        <li>a topic name [string] (the channel name is defaulted to "/", or the "global channel"); <strong>or</strong></li>
+        <li>an object with a <code>topic</code> [string] property (the channel name is defaulted to "/", or the "global channel")</li>
+      </ul>
+    </p>
 
-    <h3><code>channel.publish(data)</code></h3>
+    <p>
+      In the following example I create two channels, <code>vehicle</code> and <code>payment</code>, both of which have a <code>reverse</code> topic.  By calling <code>postal.channel()</code> I obtain subscription definition objects with which I add message handlers to the message bus.  I then publish a message on the vehicle channel, specifying the <code>reverse</code> topic, and the corresponding vehicle subscription callback is invoked.  Notice also that, while I hold a reference to the <code>vehicleChannel</code> object, I can always ask postal for the channel by name/topic elsewhere in code; I need not pass around a channel reference, which is desireable because a message bus is designed to facilitate communication between subsystems that may not even know about each other.
+    </p>
 
-    <h3><code>channel.unsubscribe()</code></h3>
+    <pre><code>
+var vehicleChannel = postal.channel('vehicle', 'reverse');
+//or: var vehicleChannel = postal.channel({channel: 'vehicle', topic: 'reverse'});
+var paymentChannel = postal.channel('payment', 'reverse');
+
+vehicleChannel.subscribe(function (data) {
+  //this callback will be invoked
+  console.log('backing up ' + data.qty + ' feet');
+});
+
+paymentChannel.subscribe(function (data) {
+  //this callback will not be invoked
+  console.log('refunding ' + data.qty + ' dollars');
+});
+
+postal.channel('vehicle', 'reverse').publish({qty: 3});
+    </pre></code>
+
+    <p>
+      When a subscription is no longer needed, calling <code>unsubscribe()</code> on the subscription object prevent the message handler from receiving any further messages from the bus.
+    </p>
+
+    <h3>Wildcards: <code>#</code> and <code>*</code></h3>
+
+    <p>
+      Topics may be refined through dot notation.  It is typically the case that a topic may subsume a number of more specific topics, for which additional channels would be a waste, but nevertheless warrant their own handlers when messages are published on the bus.  For example, <code>order.placed</code>, <code>order.packaged</code>, <code>order.packaged.labeled</code>, <code>order.shipped.ground</code>, and <code>order.shipped.air</code> are all topics related to an order delivery pipeline that many parts of an application would be interested in.
+    </p>
+
+    <p>
+      If an event handler applies to multiple topic refinements, wildcards can be used to eliminate the need for multiple handlers.  In the following example I set up a handler to respond to any orders that have been shipped, regardless of the shipping method.
+    </p>
+
+    <pre><code>
+var shippingChannel = posta.channel('fulfillment', 'order.shipped.#');
+shippingChannel.subscribe(function (data) {
+  //do something with the data
+});
+    </code></pre>
+
+    <p>
+      The "hash" or "pound" symbol can be used as wildcard for <em>one segment of a topic name</em>.  In our fulfillment example, I used the <code>#</code> wildcard to replace the specific <code>ground</code> and <code>air</code> portions of the topic name, since I was only interested in the fact that an order had actually shipped.  The "star" or "asterisk" symbol may be used as a wildcard for any consecutive characters in a topic name, and is not limited to individual segments like the hash symbol.  If I were interested in all order events, for example, I might use the topic <code>order*</code> when requesting a channel.
+    </p>
+
+    <h3></h3>
 
 <!--
 - advanced postal.js API
@@ -218,12 +275,12 @@
 
     <h2>Subscription API</h2>
 
-    <p>The subscription object in postal.js has a number of helpful methods that provide precise control over how and when subscription callbacks are executed.  These API methods may be used individually, or chained together for more complicated callback scenarios.</p>
+    <p>The subscription object in postal.js has a number of helpful methods that provide precise control over how and when subscription callbacks are executed.  These API methods may be used individually, or chained together for more complicated callback scenarios.  <em>Note that in most of these examples I am using the global "/" channel by ommitting the channel argument from the <code>postal.channel()</code> call.  This ommission is a definite indication of laziness.</em></p>
 
     <h3><code>ignoreDuplicates()</code></h3>
 
     <p>
-      <em>Limits subscription handlers to one execution per topic.</em>
+      <em>Prevents subscription callbacks from handling duplicate, consecutive topics.</em>
     </p>
 
     <p>
@@ -236,17 +293,20 @@
 
     <pre><code>
 var total = 0;
-postal.subscribe('#.selected', function (item) {
+var c = postal.channel('shop', '#.selected');
+c.subscribe(function (item) {
+    console.log(item);
   total += item.price;
 }).ignoreDuplicates();
-
-postal.publish('shirt.selected', {price: 10});
-postal.publish('slacks.selected', {price: 15});
-postal.publish('shoes.selected', {price: 20});
+ 
+postal.channel('shop', 'shirt.selected').publish({price: 10});
 //duplicate is ignored
-postal.publish('shirt.selected', {price: 10});
+postal.channel('shop', 'shirt.selected').publish({price: 10});
+postal.channel('shop', 'slacks.selected').publish({price: 15});
+postal.channel('shop', 'shoes.selected').publish({price: 20});
 
 //total price is 10 + 15 + 20 = 45
+console.log(total);​
     </code></pre> 
 
     <h3><code>disposeAfter(maxCalls)</code></h3>
@@ -270,11 +330,11 @@ c.subscribe(function (m) {
   favorites.push(m);
 }).disposeAfter(3);
 
-postal.publish('favorite.movies', 'Hot Fuzz');
-postal.publish('favorite.movies', 'Blade Runner');
-postal.publish('favorite.movies', 'TRON');
+postal.channel('favorite.movies').publish('Hot Fuzz');
+postal.channel('favorite.movies').publish('Blade Runner');
+postal.channel('favorite.movies').publish('TRON');
 //oh darn, too late--already unsubscribed!
-postal.publish('favorite.movies', 'Star Wars');
+postal.channel('favorite.movies').publish('Star Wars');
 
 //favorite moves are: Hot Fuzz, Blade Runner, and TRON
     </code></pre>
