@@ -108,39 +108,14 @@
       Object Computing, Inc. (OCI)
     </p>
 
-<!--
-- introduction
-  + two important aspects of code: isolation and communication
-  + classical vs. modular approach to code organization
-  + a need to communicate between modules, both client and server side
--->
-
-    <h2>Two Principles</h2>
-
-    <p>
-      There are two important ideas that are common to applications developed on all platforms, in all languages, and in all paradigms.
-    </p>
-
-    <p>
-      The first idea is that code should, to some extent, be isolated from other code.  In classical languages encapsulation is accomplished by access modifiers on classes and members; in functional languages this is accomplished with closures; and in procedural languages this is accomplished by the religious inclusion of underscores in structure member names, a ritual which reminds other developers to behave themselves and pretend that said members are, in fact, private.
-    </p>
-
-    <p>
-      The second idea is that these isolated pieces of code, whilst hiding their implementations from prying eyes, nevertheless must communicate with each other, much like those awkward conversations we all have every year at Thanksgiving.  Regardless of how code is organized, if it cannot communicate or message other code, our programs would be severely restricted and code reuse would cease to be posible.
-    </p>
-
-    <p>
-      On the surface, both of these ideas might appear to be antithetical.  How can hidden or encapsulated code, about which external code must necessarily be agnostic, communicate with the very code it hides from?  In classical languages, messaging occurs through abstract APIs and interfaces, so that dispirate units of code know how to message each other, but only through a gatekeeper.  Private members and data are obfuscated behind a coarse set of public members that control the state of objects.  Objects only talk to each other through these gatekeepers.  In functional languages, the gatekeepers are higher order functions, or functions that are composed of other functions.  These act as "wrappers" to a more complicated set of transformations and again, present a coarse API to which other functions may send "messages".  In these languages, then, the class and the function are the units of code composition respectively, and the units of communication between encapsultated code.  Classes and functions, however, are rarely useful by themselves, and are often organized into class libraries, or function modules, so that they can use other classes and functions to accomplish tasks that exceed their immediate concerns.  Encapsulation and communication ensure that all of these constructs play nicely with their peers.
-    </p>
-
     <h2>JavaScript: a chimera</h2>
 
     <p>
-      One day Brendan Eich forgot to have his morning shot of espresso and, in a decafinated stupor, creatd the JavaScript programming language.  I cannot vouch for the accuracy of this claim but, as this is not a history exposition, we will assume the truth of it.  JavaScript is unique because it is a functional language with classical trappings.  JavaScript code may be organized according to classical conventions primarily through the use of JavaScript constructor functions, or it may be organized according to functional conventions in which individual functions are composed and passed as arguments to other functions.  Regardless of organization style, the same general principles of encapsulation and communication apply to JavaScript code.
+      One day Brendan Eich forgot to have his morning shot of espresso and, in a decaffeinated stupor, created the JavaScript programming language.  I cannot vouch for the accuracy of this claim but, as this is not a history exposition, we will assume the truth of it.  JavaScript is unique because it is a functional language with classical trappings.  JavaScript code may be organized according to classical conventions primarily through the use of JavaScript constructor functions, or it may be organized according to functional conventions in which individual functions are composed and passed as arguments to other functions.
     </p>
 
     <p>
-      JavaScript objects can message each other via methods, and JavaScript functions can message each other via invocation.  In the dark and distant past, it was common for constructor functions (classes) and functions to live in the global JavaScript scope, which meant that all classes and functions were accesible everywhere.  This was often mitigated by creating classes and functions as public members of a global, named object literal, so that what was once <code>var bar = function () {...};</code> became <code>var Foo = {}; Foo.bar = function () {...};</code>.  This was a much more pleasant situation, but it did nothing to prevent accidental assignment from happening to members of the named object literal, since it was still in the global scope.
+      JavaScript objects can message each other via methods, and JavaScript functions can message each other via invocation.  In the dark and distant past, it was common for constructor functions (classes) and functions to live in the global JavaScript scope, which meant that all classes and functions were accessible everywhere.  This was often mitigated by creating classes and functions as public members of a global, named object literal, so that what was once <code>var bar = function () {...};</code> became <code>var Foo = {}; Foo.bar = function () {...};</code>.  This was a much more pleasant situation, but it did nothing to prevent accidental assignment from happening to members of the named object literal, since it was still in the global scope.
     </p>
 
     <p>
@@ -148,23 +123,12 @@
     </p>
 
     <p>
-      The module pattern solves the problem of encapsulation, but what we still have is a failure to communicate.  We want modules to message other modules so we can build composible JavaScript applications.  Since modules are large function closures, it makes sense that the closure might accept, as function arguments, the public objects returned from other module closures.  Messages could be sent to, and received from, other modules by interacting with these objects.  This is, in fact, how many JavaScript programs are structured.  There are even libraries such as <a href="http://requirejs.org/" target="_blank" title="require.js">require.js</a> that will resolve and "inject" module dependencies for the developer.  This approach works well for a manageable set of modules, but what happens when modules, like Tribbles, begin to multiply?  What happens when one operation in a given module affects several, or all other modules in an application?  The list of dependencies begins to grow, and every time a new module is introduced, otherwise working code must be changed.
+      The module pattern solves the problem of encapsulation, but what we still have is a failure to communicate.  We want modules to message other modules so we can build composable JavaScript applications.  Since modules are large function closures, it makes sense that the closure might accept, as function arguments, the public objects returned from other module closures.  Messages could be sent to, and received from, other modules by interacting with these objects.  This is, in fact, how many JavaScript programs are structured.  There are even libraries such as <a href="http://requirejs.org/" target="_blank" title="require.js">require.js</a> that will resolve and "inject" module dependencies for the developer.  This approach works well for a manageable set of modules, but what happens when modules, like Tribbles, begin to multiply?  What happens when one operation in a given module affects several, or all other modules in an application?  The list of dependencies begins to grow, and every time a new module is introduced, otherwise working code must be changed.
     </p>
 
     <p>
       This can be avoided. We have the technology. We can build it.
     </p>
-
-<!--
-- enter postal.js
-  + definition and characteristics of a message bus (Fowler)
-  + an in-memory message bus, open source, maintained by Jim Cowart
-  + basic postal.js API
-    * topics
-    * channels
-    * publish/subscribe
-
--->
 
     <h2>When going postal <em>is</em> the answer</h2>
 
@@ -178,7 +142,7 @@
     </p>
 
     <p>
-      All features of postal.js are accessed via the <code>postal</code> object.  In the browser, the <code>postal</code> object is typically attached to the <code>window</code> object by default.  I explained ealier that, while this is a workable solution, global objects are typically a bad idea for many different reasons.  Instead, wrapping code in closures and passing dependencies to them as function parameters is an excellent way to avoid polluting the global scope.  Fortunately, postal.js ships with two alternate scripts that conform to this pattern:
+      All features of postal.js are accessed via the <code>postal</code> object.  In the browser, the <code>postal</code> object is typically attached to the <code>window</code> object by default.  I explained earlier that, while this is a workable solution, global objects are typically a bad idea for many different reasons.  Instead, wrapping code in closures and passing dependencies to them as function parameters is an excellent way to avoid polluting the global scope.  Fortunately, postal.js ships with two alternate scripts that conform to this pattern:
 
       <ul>
         <li>an AMD-compatible<sup><a href="#fn4">4</a></sup> script that can be used with AMD loaders like require.js, and</li>
@@ -195,7 +159,7 @@
     </p>
 
     <p>
-      Messages are routed by the message bus according to the <em>channel</em> on which they are published, and the <em>toipc</em> the message specifies.  A channel is a logical container for topics.  Channel names must be unique, but topics, like streets in a city, must only be unique for the channel of which they are a part.  When a message is placed on the message bus both a channel and topic are specified, and only handlers which listen for that topic, on that specific channel, will receive that message.
+      Messages are routed by the message bus according to the <em>channel</em> on which they are published, and the <em>topic</em> the message specifies.  A channel is a logical container for topics.  Channel names must be unique, but topics, like streets in a city, must only be unique for the channel of which they are a part.  When a message is placed on the message bus both a channel and topic are specified, and only handlers which listen for that topic, on that specific channel, will receive that message.
     </p>
 
     <p>
@@ -255,44 +219,9 @@ shippingChannel.subscribe(function (data) {
       The "hash" or "pound" symbol can be used as wildcard for <em>one segment of a topic name</em>.  In our fulfillment example, I used the <code>#</code> wildcard to replace the specific <code>ground</code> and <code>air</code> portions of the topic name, since I was only interested in the fact that an order had actually shipped.  The "star" or "asterisk" symbol may be used as a wildcard for any consecutive characters in a topic name, and is not limited to individual segments like the hash symbol.  If I were interested in all order events, for example, I might use the topic <code>order*</code> when requesting a channel.
     </p>
 
-<!--
-- postal.js on the client
-  + DOM events vs. messages
-  + jQuery and user-defined events
-  + organizing code into modules (require.js)
-  + module eventing with callbacks
-  + module messaging with postal.js
-  + throw require.js into the mix (?)
-  + use with jQuery (maybe include postal.jquery.js example?)
--->
-
-<!--
-- postal.js on the server
-  + postal vs. EventEmitter
-    * EE requires inheritance, and thus vertical coupling
-    * the postal bus (or channels) is referenced, but not inherited
-    * objects that inherit from EE must interact with other objects to subscribe to events
-    * objects that use postal only interact with the bus
-  + inter-module communication with postal
-  + intra-module communication with EventEmitter  
--->
-
-<!--
-- advanced postal.js API
-  + ignoreDuplicates()
-  + disposeAfter(maxCalls)
-  + withConstraint(predicate) / withConstraints(predicates)
-  + withContext(context)
-  + withDebounce(milliseconds) //0.6
-  + withDelay(milliseconds)
-  + withPriority(priority)
-  + withThrottle(milliseconds)
-  + defer() //0.6
--->
-
     <h3>Subscriptions</h3>
 
-    <p>The subscription object in postal.js has a number of helpful methods that provide precise control over how and when subscription callbacks are executed.  These API methods may be used individually, or chained together for more complicated callback scenarios.  <em>Note that in most of these examples I am using the global "/" channel by ommitting the channel argument from the <code>postal.channel()</code> call.  This ommission is a definite indication of laziness.</em></p>
+    <p>The subscription object in postal.js has a number of helpful methods that provide precise control over how and when subscription callbacks are executed.  These API methods may be used individually, or chained together for more complicated callback scenarios.  <em>Note that in most of these examples I am using the global "/" channel by omitting the channel argument from the <code>postal.channel()</code> call.  This omission is a definite indication of laziness.</em></p>
 
     <h3><code>ignoreDuplicates()</code></h3>
 
@@ -301,7 +230,7 @@ shippingChannel.subscribe(function (data) {
     </p>
 
     <p>
-      It is often desireable to limit the number of times a program can respond to a particular application event.  This is especially important for user interaction scenarios when an accidental button double-click could mean the difference between a happy customer with a single credit card charge or an irate customer paying overdraft fees.
+      It is often desirable to limit the number of times a program can respond to a particular application event.  This is especially important for user interaction scenarios when an accidental double-click could mean the difference between a happy customer with a single credit card charge or an irate customer paying overdraft fees.
     </p>
 
     <p>
@@ -333,11 +262,11 @@ console.log(total);
     </p>
 
     <p>
-      An application may have an interest in system events, but at some threshold, ceases to care whether those events continue or not.  A channel subscription can be instructued to automatically "dispose" itself (unsubscribe, really) after it has handled a certain number of events.  If events are further published on the channel, the unsubscribed event handler will not be invoked.
+      An application may have an interest in system events, but at some threshold, ceases to care whether those events continue or not.  A channel subscription can be instructed to automatically "dispose" itself (unsubscribe, really) after it has handled a certain number of events.  If events are further published on the channel, the unsubscribed event handler will not be invoked.
     </p>
 
     <p>
-      Below I am interested in capturing a user's top three movies.  Once they have selected three their choice is irreversable, so I instruct the channel to unsubscribe once it has handled three events.
+      Below I am interested in capturing a user's top three movies.  Once they have selected three their choice is irreversible, so I instruct the channel to unsubscribe once it has handled three events.
     </p>
 
     <pre><code>
@@ -389,7 +318,7 @@ postal.channel('vehicle.accelerated').publish('Marty');
     </p>
 
     <p>
-      The JavaScript <code>this</code> keyword is schizophrenic.  Its identity changes depending on the scope in which it is used, and it is often not at all predictable.  A free-standing function is attched automatically to the global object (<code>window</code> in the browser), so the value of <code>this</code> within that function is the global object.  A function that is assigned to an object property (a method) will reference that object when <code>this</code> is used. The <code>Function</code> object prototype also has both <code>call()</code> and <code>apply()</code> methods which allow the value of <code>this</code> to be set when a function is invoked.
+      The JavaScript <code>this</code> keyword is schizophrenic.  Its identity changes depending on the scope in which it is used, and it is often not at all predictable.  A free-standing function is attached automatically to the global object (<code>window</code> in the browser), so the value of <code>this</code> within that function is the global object.  A function that is assigned to an object property (a method) will reference that object when <code>this</code> is used. The <code>Function</code> object prototype also has both <code>call()</code> and <code>apply()</code> methods which allow the value of <code>this</code> to be set when a function is invoked.
     </p>
 
     <p>
@@ -436,7 +365,7 @@ postal.channel('coffee.ready').publish({});
     </p>
 
     <p>
-      In the following example I am listening for the <code>window.resize</code> event, which is a notorously noisy.  The event fires often as the user drags the edge of the browser, but I am really only interested in the final size of the viewport when the resizing has been completed.  I use <code>debounce()</code> to delay the invocation of my callback for exactly one second each time a resize message is published to postal.
+      In the following example I am listening for the <code>window.resize</code> event, which is a notoriously noisy.  The event fires often as the user drags the edge of the browser, but I am really only interested in the final size of the viewport when the resizing has been completed.  I use <code>debounce()</code> to delay the invocation of my callback for exactly one second each time a resize message is published to postal.
     </p>
 
     <pre><code>
@@ -492,7 +421,7 @@ postal.channel('wakeup.alarm').publish({volume: 'annoying'});
     </p>
 
     <p>
-      Typically the order in which messages are handled on a message bus is irrelevant, but occassionally it is helpful to specify the order in which handlers react to published messages.  The subscription object provides a <code>withPriority()</code> method that accpets a number indicating the relative priority its handler should receive.  A higher number will take precednece over a lower number.
+      Typically the order in which messages are handled on a message bus is irrelevant, but occasionally it is helpful to specify the order in which handlers react to published messages.  The subscription object provides a <code>withPriority()</code> method that accepts a number indicating the relative priority its handler should receive.  A higher number will take precedence over a lower number.
     </p>
 
     <p>
@@ -524,7 +453,7 @@ postal.channel('stock.event').publish({action: 'sell!'});
     </p>
 
     <p>
-      A throttled subscription will invoke its handler once, then wait for a specified period of time before invoking it again, regardless of the number of messages that are published to that channel during that time.  Once the throttle period has elapsed, the handler may then respond to another message, but will ignore subsequent messages until the throttle period has, again, ellapsed.  This allows a subscription to effectively "ignore" a steady stream of messages, perfering to respond to individual messages, at timed intervals, instead.  Like <code>debounce()</code> and <code>withDelay()</code>, this API method is designed to mitigate the demand high message traffic.
+      A throttled subscription will invoke its handler once, then wait for a specified period of time before invoking it again, regardless of the number of messages that are published to that channel during that time.  Once the throttle period has elapsed, the handler may then respond to another message, but will ignore subsequent messages until the throttle period has, again, elapsed.  This allows a subscription to effectively "ignore" a steady stream of messages, preferring to respond to individual messages, at timed intervals, instead.  Like <code>debounce()</code> and <code>withDelay()</code>, this API method is designed to mitigate the demand high message traffic.
     </p>
 
     <p>
@@ -584,39 +513,152 @@ $('input[type="checkbox"]').change(function () {
 });
     </code></pre>
 
+
     <h2>Putting it all together</h2>
 
+    <p>
+      So far we've seen what postal.js can do, but not how it might actually be used.  To illustrate how an application using modules might take advantage of the postal message bus, I have created a demo application that is openly available in my <a href="https://github.com/nicholascloud/writing/tree/master/sett/going-postal/demo" target="_blank">Github repository</a>.  While duplicating the project code in this article would be prohibitive, I will give you an overview of the project (with pictures!) and explain how the code is organized, and how it leverages postal.js to manage user interactions on the page.
+    </p>
+
+    <p>
+      My demo project is called <em>LEARNyou</em>.  It is a small, fictitious application that is designed to pair people with certain skills with people who want to learn those skills.  If I want to learn how to replace kitchen cabinets, I can browse to <em>LEARNyou</em> and search for someone in my city that's willing to teach me how to do it (for a fee, of course).  It's like a very limited Craigslist for knowledge and skills.
+    </p>
+
+    <p>
+      The initial set of use cases for this application is very small:
+      <ul>
+        <li>users can pick a skill category to see people offering to teach skills subsumed under that category</li>
+        <li>users can search for a particular skill and see people offering to teach that skill</li>
+        <li>users can view details about someone who is willing to teach a skill</li>
+      </ul>
+    </p>
+
+    <p>
+      The application is a single page, divided into several functional areas that the user can interact with.  At the top is a "tag cloud" that displays all skill categories.  At the bottom is a list of people within a category, and the services that they are offering.  When a user clicks on a particular category, the offers below the tag cloud change.  A the bottom of the page is a search bar, in which the user can enter queries that will filter both the tag cloud and the available offers if matches are found.
+    </p>
+
+    <figure style="display:block; margin:auto; padding:2%; width:500px;">
+      <img src="img/learnyou01.png" alt="LEARNyou home screen" />
+      <figcaption>LEARNyou</figcaption>
+    </figure>
+
+    <p>
+      The application's JavaScript code has been separated into modules that correspond to the functional areas of the page, as well as some "plumbing" modules that handle lower-level tasks.  All modules are located under the <code>js/</code> directory and are written for require.js.  (Understanding how require.js works is not necessary for understanding the structure of the application.  All you need to know is that require.js loads and passes dependencies into modules for you.  In this case, I am mainly using require.js to pass the jQuery and postal objects to my modules).
+
+      Below is a list of modules, along with what messages they subscribe and listen to on the message bus.
+    </p>
+
+    <h3><code>home.js</code></h3>
     
+    <p>
+      <em>Configures require.js.</em>
+    </p>
+    
+    <ul>
+      <li>when all modules have been loaded, publishes a "ready" message to the message bus</li>
+    </ul>
 
+    <h3><code>search.js</code></h3>
+    
+    <p>
+      <em>Queries the data store when the user performs a search.</em>
+    </p>
+    
+    <ul>
+      <li>publishes a "search.categories" message when categories on the page should change to match search results</li>
+      <li>publishes a "search.offers" message when offers on the page should change to match search results</li>
+    </ul>
 
+    <figure style="display:block; margin:auto; padding:2%; width:500px;">
+      <img src="img/learnyou03.png" alt="Performing a search highlights applicable categories and changes the visible offers" />
+      <figcaption>Performing a search highlights applicable categories and changes the visible offers</figcaption>
+    </figure>
 
-<!--
-    <h3>Minor Heading</h3>
-    <p>Paragraph Content</p>
+    <h3><code>tagCloud.js</code></h3>
+    
+    <p>
+      <em>Manages user interaction with the tag cloud at the top of the page.</em>
+    </p>
+    
+    <ul>
+      <li>subscribes to a message which is generated when the whole page has loaded and highlights an initial category for the user</li>
+      <li>subscribes to a "search.categories" message generated by the search module; highlight categories that match search results</li>
+      <li>publishes a "categories.changed" message whenever one or more category has been selected</li>
+      <li>subscribes to a "categories.changed" message generated by <em>itself</em>; highlight the categories that have been selected</li>
+    </ul>
 
-    <p>A code example that demonstrates <code>foo()</code>:
-      <pre><code>
-var f = function foo (bar) { 
-  return bar.substr(1);
-}
-      </code></pre>
--->
+    <figure style="display:block; margin:auto; padding:2%; width:500px;">
+      <img src="img/learnyou02.png" alt="Choosing a different category highlights that category and changes the visible offers" />
+      <figcaption>Choosing a different category highlights that category and changes the visible offers</figcaption>
+    </figure>
+    
+    <h3><code>offers.js</code></h3>
+
+    <p>
+      <em>Manages user interaction with the list of offers below the tag cloud and loads and refreshes offers when the user selects a category from the tag cloud or when the user performs a search.</em>
+    </p>
+        
+    <ul>
+      <li>subscribes to a "categories.changed" message generated by the tag cloud module which indicates that a new category has been selected; offers are then refreshed based on the new category</li>
+      <li>subscribes to a "search.offers" message generated by the search module; loads offers that match search results</li>
+      <li>expands an offer's details when it is clicked; no message is published for this event</li>
+    </ul>
+
+    <figure style="display:block; margin:auto; padding:2%; width:500px;">
+      <img src="img/learnyou04b.png" alt="Clicking on an offer reveals offer details" />
+      <figcaption>Clicking on an offer reveals offer details</figcaption>
+    </figure>
+
+    <h3>Utility scripts</h3>
+
+    <p>The utility scripts do not subscribe to messages from, or publish to, the message bus, but provide plumbing for the rest of the application.</p>
+
+    <ul>
+      <li><code>data.js</code> - a data access module for hard-coded demo data.</li>
+      <li><code>jqueryext.js</code> - some simple jQuery extensions.</li>
+      <li><code>querystring.js</code> - a small module that parses query string parameters.</li>
+      <li><code>template.js</code> - a small module that builds DOM elements using jQuery.</li>
+    </ul>
+
+    <p>
+      Even though <em>LEARNyou</em> is a simple demo project, it still makes good use of the module pattern to encapsulate code, and uses the postal message bus to allow these modules to communicate without having to know about each other.  Each module subscribes to and publishes messages as needed.
+    </p>
+
+    <h2>Conclusion</h2>
+
+    <p>
+      There are two important ideas that are common to applications developed on all platforms, in all languages, and in all paradigms.
+    </p>
+
+    <p>
+      The first idea is that code should, to some extent, be isolated from other code.  In classical languages encapsulation is accomplished by access modifiers on classes and members; in functional languages this is accomplished with closures; and in procedural languages this is accomplished by the religious inclusion of underscores in structure member names, a ritual which reminds other developers to behave themselves and pretend that said members are, in fact, private.
+    </p>
+
+    <p>
+      The second idea is that these isolated pieces of code, whilst hiding their implementations from prying eyes, nevertheless must communicate with each other, much like those awkward conversations we all have every year at Thanksgiving.  Regardless of how code is organized, if it cannot communicate or message other code, our programs would be severely restricted and code reuse would cease to be possible.
+    </p>
+
+    <p>
+      On the surface, both of these ideas might appear to be antithetical.  How can hidden or encapsulated code, about which external code must necessarily be agnostic, communicate with the very code it hides from?  By delegating communication to a neutral third party, who acts as a message broker on behalf of all units of code involved.  For JavaScript modules, postal.js excels at this role.  The postal.js API is simple and terse, and sports a powerful set of features that give a developer significant control over how and when messages are handled.  Channels and topics are a convenient way for applications to organize messages, and wildcard subscriptions eliminate the need for overly-granular callbacks.
+    </p>
+
+    <p>
+      The power of postal.js makes it a library fit for every JavaScript developer's toolkit.
+    </p>
 
     <h2>Footnotes</h2>
+
     <ol>
       <li><a name="fn1" />Hohpe, Gregor. <em>Enterprise Integration Patterns</em>. 2004 Pearson Education, Inc. p. 139.</li>
       <li><a name="fn2" />Cowart, Jim. "About". <a href="http://freshbrewedcode.com/jimcowart/about/" target="_blank">Fresh Brewed Code</a>. n.d. web 13 May 2012.</li>
       <li><a name="fn3" />Cowart, Jim. "README". <a href="https://github.com/ifandelse/postal.js" target="_blank">ifandelse/postal.js</a>. Github.  23 April 2012.</li>
       <li><a name="fn4" />cmosher01. "AMD". <a href="https://github.com/amdjs/amdjs-api/wiki/AMD" target="_blank">amdjs/amdjs-api</a>. Github.</li>
-<!--
-      <li><a name="fnX" /><a href="http://nodejs.org/api/events.html">EventEmitter</a> API documentation</a></li>
--->
     </ol>
 
     <h2>References</h2>
     <ul>
       <li><a href="https://github.com/ifandelse/postal.js" title="postal.js Github repository">postal.js Github repository</a></li>
-      <li><a href="http://jsfiddle.net/ifandelse/NTPcT/" title="postal.js jsFiddle examples">postal.js jsFiddle examples</a></li>
+      <li><a href="http://jsfiddle.net/ifandelse/FdFM3/" title="postal.js jsFiddle examples">postal.js jsFiddle examples</a></li>
       <li><a href="http://www.twitter.com/ifandelse" title="Jim Cowart (@ifandelse) on Twitter">Jim Cowart (@ifandelse) on Twitter</a></li>
       <li><a href="http://freshbrewedcode.com/jimcowart/2011/12/05/client-side-messaging-with-postal-js-part-1/" title="Client-side Messaging in JavaScript -- Part 1 (Postal.js)">Client-side Messaging in JavaScript -- Part 1 (Postal.js)</a></li>
       <li><a href="http://freshbrewedcode.com/jimcowart/2012/02/02/client-side-messaging-in-javascript-part-2-postal-js/" title="Client-side Messaging in JavaScript -- Part 2 (Postal.js)">Client-side Messaging in JavaScript -- Part 2 (Postal.js)</a></li>
