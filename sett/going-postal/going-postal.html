@@ -111,11 +111,11 @@
     <h2>JavaScript: a chimera</h2>
 
     <p>
-      One day Brendan Eich forgot to have his morning shot of espresso and, in a decaffeinated stupor, created the JavaScript programming language.  I cannot vouch for the accuracy of this claim but, as this is not a history exposition, we will assume the truth of it.  JavaScript is unique because it is a functional language with classical trappings.  JavaScript code may be organized according to classical conventions primarily through the use of JavaScript constructor functions, or it may be organized according to functional conventions in which individual functions are composed and passed as arguments to other functions.
+      One day Brendan Eich forgot to have his morning shot of espresso and, in a decaffeinated stupor, created the JavaScript programming language.  I cannot vouch for the accuracy of this claim but, as this is not a historical exposition, we will assume the truth of it.  JavaScript is unique because it is a functional language with classical trappings.  JavaScript code may be organized according to classical conventions primarily through the use of JavaScript constructor functions, or it may be organized according to functional conventions in which individual functions are composed and passed as arguments to other functions.
     </p>
 
     <p>
-      JavaScript objects can message each other via methods, and JavaScript functions can message each other via invocation.  In the dark and distant past, it was common for constructor functions (classes) and functions to live in the global JavaScript scope, which meant that all classes and functions were accessible everywhere.  This was often mitigated by creating classes and functions as public members of a global, named object literal, so that what was once <code>var bar = function () {...};</code> became <code>var Foo = {}; Foo.bar = function () {...};</code>.  This was a much more pleasant situation, but it did nothing to prevent accidental assignment from happening to members of the named object literal, since it was still in the global scope.
+      JavaScript objects can message each other via methods, and JavaScript functions can message each other via invocation.  In the dark and distant past, it was common for constructor functions (classes) and normal functions to live in the global JavaScript scope, which meant that all classes and functions were accessible everywhere.  This was often mitigated by creating classes and functions as public members of a global, named object literal, so that what was once <code>var bar = function () {...};</code> became <code>var Foo = {}; Foo.bar = function () {...};</code>.  This was a much more pleasant situation, but it did nothing to prevent developers from overriding members of the named object literal, since it was still in the global scope.
     </p>
 
     <p>
@@ -123,7 +123,7 @@
     </p>
 
     <p>
-      The module pattern solves the problem of encapsulation, but what we still have is a failure to communicate.  We want modules to message other modules so we can build composable JavaScript applications.  Since modules are large function closures, it makes sense that the closure might accept, as function arguments, the public objects returned from other module closures.  Messages could be sent to, and received from, other modules by interacting with these objects.  This is, in fact, how many JavaScript programs are structured.  There are even libraries such as <a href="http://requirejs.org/" target="_blank" title="require.js">require.js</a> that will resolve and "inject" module dependencies for the developer.  This approach works well for a manageable set of modules, but what happens when modules, like Tribbles, begin to multiply?  What happens when one operation in a given module affects several, or all other modules in an application?  The list of dependencies begins to grow, and every time a new module is introduced, otherwise working code must be changed.
+      The module pattern solves the problem of encapsulation, but objects still need to communicate.  We want modules to message other modules so we can build composable JavaScript applications.  Since modules are large function closures, it makes sense that the closure might accept, as function arguments, the public objects returned from other module closures.  Messages could be sent to, and received from, other modules by interacting with these objects.  This is, in fact, how many JavaScript programs are structured.  There are even libraries such as <a href="http://requirejs.org/" target="_blank" title="require.js">require.js</a> that will resolve and "inject" module dependencies for the developer.  This approach works well for a manageable set of modules, but what happens when modules, like Tribbles, begin to multiply?  What happens when one operation in a given module affects several, or all other modules in an application?  The list of dependencies begins to grow, and every time a new module is introduced, otherwise working code must be changed.
     </p>
 
     <p>
@@ -159,16 +159,16 @@
     </p>
 
     <p>
-      Messages are routed by the message bus according to the <em>channel</em> on which they are published, and the <em>topic</em> the message specifies.  A channel is a logical container for topics.  Channel names must be unique, but topics, like streets in a city, must only be unique for the channel of which they are a part.  When a message is placed on the message bus both a channel and topic are specified, and only handlers which listen for that topic, on that specific channel, will receive that message.
+      Messages are routed by the message bus according to the <em>channel</em> on which they are published, and the <em>topic</em> the message specifies.  A channel is a logical container for topics.  Channel names are unique, but topics, like streets in a city, are only unique for the channel of which they are a part (i.e., topics with the same name can exist under different channels).  When a message is placed on the message bus both a channel and topic are specified, and only handlers which listen for that topic, on that specific channel, will receive that message.  Channels are convenient ways to organize groups of "topics" at a very high level.  Topics are the individual message types that a subscriber might be interested in within a channel.
     </p>
 
     <p>
       To add a message subscription, a channel object is created by invoking the <code>posta.channel()</code> method, supplying one set of the following arguments:
       <ul>
-        <li>channel name [string], topic name [string]; <strong>or</strong></li>
-        <li>an object with <code>channel</code> [string] and <code>topic</code> [string] properties; <strong>or</strong></li>
-        <li>a topic name [string] (the channel name is defaulted to "/", or the "global channel"); <strong>or</strong></li>
-        <li>an object with a <code>topic</code> [string] property (the channel name is defaulted to "/", or the "global channel")</li>
+        <li>channel name and topic name (both strings); <strong>or</strong></li>
+        <li>an object with <code>channel</code> and <code>topic</code> properties (both strings); <strong>or</strong></li>
+        <li>a topic name (the channel name is defaulted to "/", or the "global channel"); <strong>or</strong></li>
+        <li>an object with a <code>topic</code> property (the channel name is defaulted to "/", or the "global channel")</li>
       </ul>
     </p>
 
@@ -195,7 +195,7 @@ postal.channel('vehicle', 'reverse').publish({qty: 3});
     </pre></code>
 
     <p>
-      When a subscription is no longer needed, calling <code>unsubscribe()</code> on the subscription object prevent the message handler from receiving any further messages from the bus.
+      When a subscription is no longer needed, calling <code>unsubscribe()</code> on the subscription object prevents the message handler from receiving any further messages from the bus.
     </p>
 
     <h3>Wildcards: <code>#</code> and <code>*</code></h3>
@@ -209,14 +209,14 @@ postal.channel('vehicle', 'reverse').publish({qty: 3});
     </p>
 
     <pre><code>
-var shippingChannel = posta.channel('fulfillment', 'order.shipped.#');
-shippingChannel.subscribe(function (data) {
+var fulfillmentChannel = postal.channel('fulfillment', 'order.shipped.#');
+fulfillmentChannel.subscribe(function (data) {
   //do something with the data
 });
     </code></pre>
 
     <p>
-      The "hash" or "pound" symbol can be used as wildcard for <em>one segment of a topic name</em>.  In our fulfillment example, I used the <code>#</code> wildcard to replace the specific <code>ground</code> and <code>air</code> portions of the topic name, since I was only interested in the fact that an order had actually shipped.  The "star" or "asterisk" symbol may be used as a wildcard for any consecutive characters in a topic name, and is not limited to individual segments like the hash symbol.  If I were interested in all order events, for example, I might use the topic <code>order*</code> when requesting a channel.
+      The "hash" or "pound" symbol can be used as wildcard for <em>one segment of a topic name</em>.  In our fulfillment example, I used the <code>#</code> wildcard to replace the specific <code>ground</code> and <code>air</code> portions of the topic since I was only interested in the fact that an order had actually shipped.  The "star" or "asterisk" symbol may be used as a wildcard for any consecutive characters in a topic name, and is not limited to individual segments like the hash symbol.  If I were interested in all order events, for example, I might use the topic <code>order*</code> when requesting a channel.
     </p>
 
     <h3>Subscriptions</h3>
@@ -234,16 +234,15 @@ shippingChannel.subscribe(function (data) {
     </p>
 
     <p>
-      In the following example, a fictitious shopping cart limits the number of times a customer can add a shirt to her order. The total price only changes when unique items are added to the cart.
+      In the following example, a fictitious shopping cart prevents a customer from accidentally adding a shirt to her order twice.
     </p>
 
     <pre><code>
 var total = 0;
 var c = postal.channel('shop', '#.selected');
 c.subscribe(function (item) {
-    console.log(item);
   total += item.price;
-}).ignoreDuplicates();
+}).<strong>ignoreDuplicates()</strong>;
  
 postal.channel('shop', 'shirt.selected').publish({price: 10});
 //duplicate is ignored
@@ -252,7 +251,6 @@ postal.channel('shop', 'slacks.selected').publish({price: 15});
 postal.channel('shop', 'shoes.selected').publish({price: 20});
 
 //total price is 10 + 15 + 20 = 45
-console.log(total);
     </code></pre> 
 
     <h3><code>disposeAfter(maxCalls)</code></h3>
@@ -274,7 +272,7 @@ var favorites = [];
 var c = postal.channel('favorite.movies');
 c.subscribe(function (m) {
   favorites.push(m);
-}).disposeAfter(3);
+}).<strong>disposeAfter(3)</strong>;
 
 postal.channel('favorite.movies').publish('Hot Fuzz');
 postal.channel('favorite.movies').publish('Blade Runner');
@@ -292,7 +290,7 @@ postal.channel('favorite.movies').publish('Star Wars');
     </p>
 
     <p>
-      Although we could add conditional logic in the body of an event handler, postal provides methods whereby we can specify one or more conditions that must be met in order for the event handler to be executed when a publish occurs on the channel.  This keeps the event handler clean, unpolluted with criteria logic that is related to the behavior of the subscription.
+      Although we could add conditional logic in the body of an event handler, postal provides methods whereby we can specify one or more conditions that must be met in order for the event handler to be executed when a publish occurs on the channel.  This keeps the event handler unpolluted with criteria logic that is related to the behavior of the subscription.
     </p>
 
     <p>
@@ -304,9 +302,9 @@ var speed = 88;
 
 postal.channel('vehicle.accelerated').subscribe(function (passenger) {
   timeTravel(passenger);
-}).withConstraint(function () {
+}).<strong>withConstraint(function () {
   return speed === 88;
-});
+})</strong>;
 
 postal.channel('vehicle.accelerated').publish('Marty');
     </code></pre>
@@ -318,7 +316,7 @@ postal.channel('vehicle.accelerated').publish('Marty');
     </p>
 
     <p>
-      The JavaScript <code>this</code> keyword is schizophrenic.  Its identity changes depending on the scope in which it is used, and it is often not at all predictable.  A free-standing function is attached automatically to the global object (<code>window</code> in the browser), so the value of <code>this</code> within that function is the global object.  A function that is assigned to an object property (a method) will reference that object when <code>this</code> is used. The <code>Function</code> object prototype also has both <code>call()</code> and <code>apply()</code> methods which allow the value of <code>this</code> to be set when a function is invoked.
+      The JavaScript <code>this</code> keyword is schizophrenic.  Its identity changes depending on the scope in which it is used, and it is often not at all predictable.  A free-standing function is attached automatically to the global object (<code>window</code> in the browser), so the value of <code>this</code> within that function is the global object.  A function that is assigned to an object property (a method) will reference that object when <code>this</code> is used. The <code>Function</code> object prototype also has both <code>call()</code> and <code>apply()</code> methods which allow the value of <code>this</code> to be arbitrarily set by the developer when a function is invoked.
     </p>
 
     <p>
@@ -326,7 +324,7 @@ postal.channel('vehicle.accelerated').publish('Marty');
     </p>
 
     <p>
-      It is also important to note that postal caches the object passed into <code>withContext()</code>, so in this case the DOM is traversed only once for the "mug" element.  All callbacks will have a reference to the exact same object.
+      It is also important to note that postal caches the object passed into <code>withContext()</code>, so in this case the DOM is traversed only once for the "mug" element.  All callbacks invocations will have a reference to the exact same <code>this</code> object.
     </p>
 
     <pre><code>
@@ -338,12 +336,7 @@ c.subscribe(function (data) {
 
 c.subscribe(function (data) {
   //this === $('#mug')
-}).withContext(
-    (function () { 
-        console.log('this will happen once');
-        return $('#mug');
-    }())
-);
+}).<strong>withContext($('#mug'))</strong>;
 
 postal.channel('coffee.ready').publish({});
 postal.channel('coffee.ready').publish({});
@@ -374,7 +367,7 @@ var c = postal.channel('resize');
 c.subscribe(function (dim) {
   $('#movie').height(dim.h / 2)
     .width(dim.w / 2);
-}).withDebounce(1000);
+}).<strong>withDebounce(1000)</strong>;
 
 $(window).resize(function () {
   postal.channel('resize').publish({
@@ -409,7 +402,7 @@ c.subscribe(function (data) {
   //make sure this lazy ass gets out of bed!
   alarm.buzz({volume: data.volume});
 
-}).withDelay(snoozeDuration);
+}).<strong>withDelay(snoozeDuration)</strong>;
 
 postal.channel('wakeup.alarm').publish({volume: 'annoying'});
     </code></pre>
@@ -425,7 +418,7 @@ postal.channel('wakeup.alarm').publish({volume: 'annoying'});
     </p>
 
     <p>
-      I've created to handlers that respond to a stock event messages--one handler represents stock holders, the other, inside traders.  Even though the stock holder subscription is created first, its lower priority number means that it will be executed after the inside trader handler.
+      I've created two handlers that respond to a stock event messages--one handler represents stock holders, the other, inside traders.  Even though the stock holder subscription is created first, its lower priority number means that it will be executed after the inside trader handler.
     </p>
 
     <pre><code>
@@ -440,8 +433,8 @@ var insider = function (data) {
   console.log('Insider knows!');
 };
 
-c.subscribe(stockholder).withPriority(75);
-c.subscribe(insider).withPriority(100);
+c.subscribe(stockholder).<strong>withPriority(75)</strong>;
+c.subscribe(insider).<strong>withPriority(100)</strong>;
 
 postal.channel('stock.event').publish({action: 'sell!'});
     </code></pre>
@@ -453,11 +446,11 @@ postal.channel('stock.event').publish({action: 'sell!'});
     </p>
 
     <p>
-      A throttled subscription will invoke its handler once, then wait for a specified period of time before invoking it again, regardless of the number of messages that are published to that channel during that time.  Once the throttle period has elapsed, the handler may then respond to another message, but will ignore subsequent messages until the throttle period has, again, elapsed.  This allows a subscription to effectively "ignore" a steady stream of messages, preferring to respond to individual messages, at timed intervals, instead.  Like <code>debounce()</code> and <code>withDelay()</code>, this API method is designed to mitigate the demand high message traffic.
+      A throttled subscription will invoke its handler once, then wait for a specified period of time before invoking it again, regardless of the number of messages that are published to the channel during that time.  Once the throttle period has elapsed, the handler may then respond to another message, but will ignore subsequent messages until the throttle period has, again, elapsed.  This allows a subscription to effectively "ignore" a steady stream of messages, preferring to respond to individual messages, at timed intervals, instead.  Like <code>debounce()</code> and <code>withDelay()</code>, this API method is designed to mitigate the demand high message traffic.
     </p>
 
     <p>
-      GPS tracking is a good source of constant, streaming data. In the example that follows I simulate the movement of a high-speed with a recursive function that increments its position on a linear path.  Each time the movement function executes--every 0.5 seconds--it publishes an event to the bus.  The subscription handler has a throttle of two seconds because the movement data is being published too quickly.
+      GPS tracking is a good source of constant, streaming data. In the example that follows I simulate the movement of a high-speed vehicle with a recursive function that increments its position on a linear path.  Each time the movement function executes--every 0.5 seconds--it publishes an event to the bus.  The subscription handler has a throttle of two seconds because the movement data is being published too quickly.  The callback handler will be invoked for (roughly) every third message.
     </p>
 
     <pre><code>
@@ -465,7 +458,7 @@ var c = postal.channel('dhs.track.movement');
 
 c.subscribe(function (pos) {
   console.log('Moved to ' + pos);
-}).withThrottle(2000);
+}).<strong>withThrottle(2000)</strong>;
 
 (function move (timesMoved) {
   if (timesMoved === 50) return;
@@ -499,7 +492,7 @@ c.subscribe(function (query) {
     }
   }
   postal.channel('schedule', 'filter').publish(results);
-}).defer();
+}).<strong>defer()</strong>;
 
 //elsewhere...
 $('input[type="checkbox"]').change(function () {
@@ -517,24 +510,24 @@ $('input[type="checkbox"]').change(function () {
     <h2>Putting it all together</h2>
 
     <p>
-      So far we've seen what postal.js can do, but not how it might actually be used.  To illustrate how an application using modules might take advantage of the postal message bus, I have created a demo application that is openly available in my <a href="https://github.com/nicholascloud/writing/tree/master/sett/going-postal/demo" target="_blank">Github repository</a>.  While duplicating the project code in this article would be prohibitive, I will give you an overview of the project (with pictures!) and explain how the code is organized, and how it leverages postal.js to manage user interactions on the page.
+      So far we've seen what postal.js can do, but not how it might actually be used.  To illustrate how an application using modules might take advantage of the postal message bus, I have created a demo application that is freely available in my <a href="https://github.com/nicholascloud/writing/tree/master/sett/going-postal/demo" target="_blank">Github repository</a>.  While duplicating the project code in this article would be prohibitive, I will give you an overview of the project (with pictures!) and explain how the code is organized, and how it leverages postal.js to manage module interaction.
     </p>
 
     <p>
-      My demo project is called <em>LEARNyou</em>.  It is a small, fictitious application that is designed to pair people with certain skills with people who want to learn those skills.  If I want to learn how to replace kitchen cabinets, I can browse to <em>LEARNyou</em> and search for someone in my city that's willing to teach me how to do it (for a fee, of course).  It's like a very limited Craigslist for knowledge and skills.
+      My demo project is called <em>LEARNyou</em>.  It is a small, fictitious application that is designed to connect people with certain skills to  people who want to learn those skills.  If I want to learn how to replace kitchen cabinets, I can browse to <em>LEARNyou</em> and search for someone in my city that's willing to teach me how to do it (for a fee, of course).
     </p>
 
     <p>
       The initial set of use cases for this application is very small:
       <ul>
-        <li>users can pick a skill category to see people offering to teach skills subsumed under that category</li>
+        <li>users can pick a skill category to see people offering to teach skills in that category</li>
         <li>users can search for a particular skill and see people offering to teach that skill</li>
         <li>users can view details about someone who is willing to teach a skill</li>
       </ul>
     </p>
 
     <p>
-      The application is a single page, divided into several functional areas that the user can interact with.  At the top is a "tag cloud" that displays all skill categories.  At the bottom is a list of people within a category, and the services that they are offering.  When a user clicks on a particular category, the offers below the tag cloud change.  A the bottom of the page is a search bar, in which the user can enter queries that will filter both the tag cloud and the available offers if matches are found.
+      The application is a single page divided into several functional areas with which the user may interact.  At the top is a "tag cloud" that displays all skill categories.  In the middle is a list of people within a category, and the services that they are offering.  When a user clicks on a particular category, the offers below the tag cloud change.  At the bottom of the page is a search box in which the user can enter queries that will filter both the tag cloud and the available offers if matches are found.
     </p>
 
     <figure style="display:block; margin:auto; padding:2%; width:500px;">
@@ -543,7 +536,7 @@ $('input[type="checkbox"]').change(function () {
     </figure>
 
     <p>
-      The application's JavaScript code has been separated into modules that correspond to the functional areas of the page, as well as some "plumbing" modules that handle lower-level tasks.  All modules are located under the <code>js/</code> directory and are written for require.js.  (Understanding how require.js works is not necessary for understanding the structure of the application.  All you need to know is that require.js loads and passes dependencies into modules for you.  In this case, I am mainly using require.js to pass the jQuery and postal objects to my modules).
+      The application's JavaScript code has been separated into modules that correspond to the functional areas of the page, as well as some utility modules that handle lower-level tasks.  All modules are located under the <code>js/</code> directory and are written for require.js.  (Understanding how require.js works is not necessary for understanding the structure of the application.  All you need to know is that require.js loads and passes dependencies into modules for you.  In this case, I am mainly using require.js to pass the jQuery and postal objects to my modules).
 
       Below is a list of modules, along with what messages they subscribe and listen to on the message bus.
     </p>
@@ -582,9 +575,9 @@ $('input[type="checkbox"]').change(function () {
     
     <ul>
       <li>subscribes to a message which is generated when the whole page has loaded and highlights an initial category for the user</li>
-      <li>subscribes to a "search.categories" message generated by the search module; highlight categories that match search results</li>
+      <li>subscribes to a "search.categories" message generated by the search module; highlights categories that match search results</li>
       <li>publishes a "categories.changed" message whenever one or more category has been selected</li>
-      <li>subscribes to a "categories.changed" message generated by <em>itself</em>; highlight the categories that have been selected</li>
+      <li>subscribes to a "categories.changed" message generated by <em>itself</em>; highlights the categories that have been selected</li>
     </ul>
 
     <figure style="display:block; margin:auto; padding:2%; width:500px;">
@@ -635,7 +628,7 @@ $('input[type="checkbox"]').change(function () {
     </p>
 
     <p>
-      The second idea is that these isolated pieces of code, whilst hiding their implementations from prying eyes, nevertheless must communicate with each other, much like those awkward conversations we all have every year at Thanksgiving.  Regardless of how code is organized, if it cannot communicate or message other code, our programs would be severely restricted and code reuse would cease to be possible.
+      The second idea is that these isolated pieces of code, while hiding their implementations from prying eyes, nevertheless must communicate with each other, much like those awkward conversations we all have every year at Thanksgiving.  Regardless of how code is organized, if it cannot communicate or message other code our programs would be severely restricted and code reuse would cease to be possible.
     </p>
 
     <p>
