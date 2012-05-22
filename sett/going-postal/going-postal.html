@@ -155,7 +155,7 @@
     <h3>Channels and Topics</h3>
 
     <p>
-      When I send a letter to a friend who lives in another city, I specify both the city, state, and street address to which the message will be delivered.  It is entirely possible that a street in another city may share the same name as my friend's street (e.g., Washington Street), but because I have "namespaced" the address with the city in which my friend lives, the post office knows exactly which street is meant.
+      When I send a letter to a friend who lives in another city, I specify the city, state, and street address to which the message will be delivered.  It is entirely possible that a street in another city may share the same name as my friend's street (e.g., Washington Street), but because I have "namespaced" the address with the city in which my friend lives, the post office knows exactly which street is meant.
     </p>
 
     <p>
@@ -358,7 +358,7 @@ postal.channel('coffee.ready').publish({});
     </p>
 
     <p>
-      In the following example I am listening for the <code>window.resize</code> event, which is a notoriously noisy.  The event fires often as the user drags the edge of the browser, but I am really only interested in the final size of the viewport when the resizing has been completed.  I use <code>debounce()</code> to delay the invocation of my callback for exactly one second each time a resize message is published to postal.
+      In the following example I am listening for the <code>window.resize</code> event, which is notoriously noisy.  The event fires often as the user drags the edge of the browser, but I am really only interested in the final size of the viewport when the resizing has been completed.  I use <code>debounce()</code> to delay the invocation of my callback for exactly one second each time a resize message is published to postal.  When the message handler executes, it will receive the <em>last</em> message placed on the bus.
     </p>
 
     <pre><code>
@@ -384,7 +384,7 @@ $(window).resize(function () {
     </p>
 
     <p>
-      A delay is similar to a debounce in that they both defer the invocation of a callback until some future point in time.  Unlike a debounce, a delay does not discard all publishes messages except the last.  A delayed callback will still react to all messages published to its channel during the delay period, but it defers <em>all</em> invocations.
+      A delay is similar to a debounce in that they both defer the invocation of a callback until some future point in time.  Unlike a debounce, a delay does not discard all published messages except the last.  A delayed callback will still react to all messages published to its channel during the delay period, but it defers <em>all invocations</em>.
     </p>
 
     <p>
@@ -476,7 +476,7 @@ c.subscribe(function (pos) {
     </p>
 
     <p>
-      One key principle of user interface design is that the user should not be kept waiting.  A responsive UI is a friendly UI.  Since JavaScript is executed on a single thread in the browser, it must use clever tricks to simulate parallel operations.  Using a subscription's <code>defer()</code> method effectively short-circuits these tricks, and forces the runtime to finish what it's doing before the event handler executes its code.  This allows the UI to stay responsive for as long as possible before performing resource-intensive operations.
+      One key principle of user interface design is that the user should not be kept waiting.  A responsive UI is a friendly UI.  Since JavaScript is executed on a single thread in the browser, it must use clever tricks to simulate parallel operations.  Using a subscription's <code>defer()</code> method effectively short-circuits these tricks, and forces the runtime to finish what it's doing before the message handler executes its code.  This allows the UI to stay responsive for as long as possible before performing resource-intensive operations.
     </p>
 
     <pre><code>
@@ -510,7 +510,7 @@ $('input[type="checkbox"]').change(function () {
     <h2>Putting it all together</h2>
 
     <p>
-      So far we've seen what postal.js can do, but not how it might actually be used.  To illustrate how an application using modules might take advantage of the postal message bus, I have created a demo application that is freely available in my <a href="https://github.com/nicholascloud/writing/tree/master/sett/going-postal/demo" target="_blank">Github repository</a>.  While duplicating the project code in this article would be prohibitive, I will give you an overview of the project (with pictures!) and explain how the code is organized, and how it leverages postal.js to manage module interaction.
+      So far we've seen what postal.js can do, but not how it might actually be used.  To illustrate how an application using modules might take advantage of the postal message bus, I have created a demo project that is freely available in my <a href="https://github.com/nicholascloud/writing/tree/master/sett/going-postal/demo" target="_blank">Github repository</a>.  While duplicating the project code in this article would be prohibitive, I will give you an overview of the project (with pictures!) and explain how the code is organized, and how it leverages postal.js to manage module interaction.
     </p>
 
     <p>
@@ -527,7 +527,7 @@ $('input[type="checkbox"]').change(function () {
     </p>
 
     <p>
-      The application is a single page divided into several functional areas with which the user may interact.  At the top is a "tag cloud" that displays all skill categories.  In the middle is a list of people within a category, and the services that they are offering.  When a user clicks on a particular category, the offers below the tag cloud change.  At the bottom of the page is a search box in which the user can enter queries that will filter both the tag cloud and the available offers if matches are found.
+      The application is a single page divided into several functional areas with which the user may interact.  At the top is a "tag cloud" that displays all skill categories.  In the middle is a list of people within a category, and the services that they are offering.  When a user clicks on a particular category the offers below the tag cloud change.  At the bottom of the page is a search box in which the user can enter queries that will filter both the tag cloud and the available offers if matches are found.
     </p>
 
     <figure style="display:block; margin:auto; padding:2%; width:500px;">
@@ -628,7 +628,7 @@ $('input[type="checkbox"]').change(function () {
     </p>
 
     <p>
-      The second idea is that these isolated pieces of code, while hiding their implementations from prying eyes, nevertheless must communicate with each other, much like those awkward conversations we all have every year at Thanksgiving.  Regardless of how code is organized, if it cannot communicate or message other code our programs would be severely restricted and code reuse would cease to be possible.
+      The second idea is that these isolated pieces of code, while hiding their implementation from prying eyes, nevertheless must communicate with each other, much like those awkward conversations we all have every year at Thanksgiving.  Regardless of how code is organized, if it cannot communicate or message other code our programs would be severely restricted and code reuse would cease to be possible.
     </p>
 
     <p>
