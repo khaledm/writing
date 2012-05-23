@@ -414,11 +414,11 @@ postal.channel('wakeup.alarm').publish({volume: 'annoying'});
     </p>
 
     <p>
-      Typically the order in which messages are handled on a message bus is irrelevant, but occasionally it is helpful to specify the order in which handlers react to published messages.  The subscription object provides a <code>withPriority()</code> method that accepts a number indicating the relative priority its handler should receive.  A higher number will take precedence over a lower number.
+      Typically the order in which messages are handled on a message bus is irrelevant, but occasionally it is helpful to specify the order in which handlers react to published messages.  The subscription object provides a <code>withPriority()</code> method that accepts a number indicating the relative priority its handler should receive.  A lower number will take precedence over a higher number (think of it link an array index - lower numbered indices are iterated over first).
     </p>
 
     <p>
-      I've created two handlers that respond to a stock event messages--one handler represents stock holders, the other, inside traders.  Even though the stock holder subscription is created first, its lower priority number means that it will be executed after the inside trader handler.
+      I've created two handlers that respond to a stock event messages--one handler represents stock holders, the other, inside traders.  Even though the stock holder subscription is created first, its larger priority number means that it will be executed after the inside trader handler.
     </p>
 
     <pre><code>
@@ -433,8 +433,8 @@ var insider = function (data) {
   console.log('Insider knows!');
 };
 
-c.subscribe(stockholder).<strong>withPriority(75)</strong>;
-c.subscribe(insider).<strong>withPriority(100)</strong>;
+c.subscribe(stockholder).<strong>withPriority(100)</strong>;
+c.subscribe(insider).<strong>withPriority(75)</strong>;
 
 postal.channel('stock.event').publish({action: 'sell!'});
     </code></pre>
