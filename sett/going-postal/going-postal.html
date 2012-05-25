@@ -223,7 +223,7 @@ fulfillmentChannel.subscribe(function (data) {
 
     <p>The subscription object in postal.js has a number of helpful methods that provide precise control over how and when subscription callbacks are executed.  These API methods may be used individually, or chained together for more complicated callback scenarios.  <em>Note that in most of these examples I am using the global "/" channel by omitting the channel argument from the <code>postal.channel()</code> call.  This omission is a definite indication of laziness.</em></p>
 
-    <h3><code>ignoreDuplicates()</code></h3>
+    <h3><code>distinctUntilChanged()</code></h3>
 
     <p>
       <em>Prevents subscription callbacks from handling duplicate, consecutive topics.</em>
@@ -242,7 +242,7 @@ var total = 0;
 var c = postal.channel('shop', '#.selected');
 c.subscribe(function (item) {
   total += item.price;
-}).<strong>ignoreDuplicates()</strong>;
+}).<strong>distinctUntilChanged()</strong>;
  
 postal.channel('shop', 'shirt.selected').publish({price: 10});
 //duplicate is ignored
