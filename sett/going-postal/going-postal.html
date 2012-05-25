@@ -138,7 +138,7 @@
     </p>
 
     <p>
-      If you use JavaScript on the client, there is a good chance you also use jQuery or some other DOM abstraction library to handle DOM events and perhaps create your own custom events.  If you are writing JavaScript on the server you probably use node.js and the EventEmitter object to create and handle events as well.  postal.js does not replace these eventing mechanisms, but instead augments an application by providing a common messaging layer between modules that, themselves, leverage these eventing technologies internally.
+      If you use JavaScript on the client, there is a good chance you also use jQuery or some other DOM abstraction library to handle DOM events and perhaps create your own custom events.  If you are writing JavaScript on the server you probably use Node.js and the EventEmitter object to create and handle events as well.  postal.js does not replace these eventing mechanisms, but instead augments an application by providing a common messaging layer between modules that, themselves, leverage these eventing technologies internally.
     </p>
 
     <p>
@@ -146,7 +146,7 @@
 
       <ul>
         <li>an AMD-compatible<sup><a href="#fn4">4</a></sup> script that can be used with AMD loaders like require.js, and</li>
-        <li>a node.js module that assigns the <code>postal</code> object to <code>exports</code> which can be accessed by other node.js modules
+        <li>a Node.js module that assigns the <code>postal</code> object to <code>exports</code> which can be accessed by other Node.js modules
       </ul>
 
       Regardless of how your code is organized and your dependencies are managed, however, postal concepts and API calls remain the same.
@@ -163,7 +163,7 @@
     </p>
 
     <p>
-      To add a message subscription, a channel object is created by invoking the <code>posta.channel()</code> method, supplying one set of the following arguments:
+      To add a message subscription, a channel object is created by invoking the <code>postal.channel()</code> method, supplying one set of the following arguments:
       <ul>
         <li>channel name and topic name (both strings); <strong>or</strong></li>
         <li>an object with <code>channel</code> and <code>topic</code> properties (both strings); <strong>or</strong></li>
@@ -216,7 +216,7 @@ fulfillmentChannel.subscribe(function (data) {
     </code></pre>
 
     <p>
-      The "hash" or "pound" symbol can be used as wildcard for <em>one segment of a topic name</em>.  In our fulfillment example, I used the <code>#</code> wildcard to replace the specific <code>ground</code> and <code>air</code> portions of the topic since I was only interested in the fact that an order had actually shipped.  The "star" or "asterisk" symbol may be used as a wildcard for any consecutive characters in a topic name, and is not limited to individual segments like the hash symbol.  If I were interested in all order events, for example, I might use the topic <code>order*</code> when requesting a channel.
+      The "hash" or "pound" symbol can be used as wildcard for <em>one segment of a topic name</em>.  In our fulfillment example, I used the <code>#</code> wildcard to replace the specific <code>ground</code> and <code>air</code> portions of the topic since I was only interested in the fact that an order had actually shipped.  The "star" or "asterisk" symbol may be used as a wildcard for any consecutive characters in a topic name, and is not limited to individual segments like the hash symbol.  If I were interested in all order events, for example, I might use the topic <code>order.*</code> or <code>order*</code> when requesting a channel.<sup><a href="#fn5">5</a></sup>
     </p>
 
     <h3>Subscriptions</h3>
@@ -646,6 +646,7 @@ $('input[type="checkbox"]').change(function () {
       <li><a name="fn2" />Cowart, Jim. "About". <a href="http://freshbrewedcode.com/jimcowart/about/" target="_blank">Fresh Brewed Code</a>. n.d. web 13 May 2012.</li>
       <li><a name="fn3" />Cowart, Jim. "README". <a href="https://github.com/ifandelse/postal.js" target="_blank">ifandelse/postal.js</a>. Github.  23 April 2012.</li>
       <li><a name="fn4" />cmosher01. "AMD". <a href="https://github.com/amdjs/amdjs-api/wiki/AMD" target="_blank">amdjs/amdjs-api</a>. Github.</li>
+      <li><a name="fn5" />In future versions of postal.js wildcards will be inversed so that <code>*</code> will act as a segment wildcard and <code>#</code> will act as a consecutive character wildcard. This is closer to established wildcard patterns, such as that of <a href="http://blog.springsource.org/2010/06/14/understanding-amqp-the-protocol-used-by-rabbitmq/" title="AMQP" target="_blank">AMQP</a>.</li>
     </ol>
 
     <h2>References</h2>
