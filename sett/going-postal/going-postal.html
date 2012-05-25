@@ -446,7 +446,7 @@ postal.channel('stock.event').publish({action: 'sell!'});
     </p>
 
     <p>
-      A throttled subscription will invoke its handler once, then wait for a specified period of time before invoking it again, regardless of the number of messages that are published to the channel during that time.  Once the throttle period has elapsed, the handler may then respond to another message, but will ignore subsequent messages until the throttle period has, again, elapsed.  This allows a subscription to effectively "ignore" a steady stream of messages, preferring to respond to individual messages, at timed intervals, instead.  Like <code>debounce()</code> and <code>withDelay()</code>, this API method is designed to mitigate the demand high message traffic.
+      A throttled subscription will invoke its handler once, then wait for a specified period of time before invoking it again, regardless of the number of messages that are published to the channel during that time.  Once the throttle period has elapsed, the handler may then respond to another message, but will ignore subsequent messages until the throttle period has, again, elapsed.  This allows a subscription to effectively "ignore" a steady stream of messages, preferring to respond to individual messages, at timed intervals, instead.  Like <code>debounce()</code> and <code>withDelay()</code>, this API method is designed to mitigate the demand of high message traffic.
     </p>
 
     <p>
