@@ -230,7 +230,7 @@ fulfillmentChannel.subscribe(function (data) {
     </p>
 
     <p>
-      It is often desirable to limit the number of times a program can respond to a particular application event.  This is especially important for user interaction scenarios when an accidental double-click could mean the difference between a happy customer with a single credit card charge or an irate customer paying overdraft fees.
+      It is often desirable to limit the number of times a program can respond to consecutive application event.  This is especially important for user interaction scenarios when an accidental double-click could mean the difference between a happy customer with a single credit card charge or an irate customer paying overdraft fees.
     </p>
 
     <p>
@@ -244,14 +244,41 @@ c.subscribe(function (item) {
   total += item.price;
 }).<strong>distinctUntilChanged()</strong>;
  
-postal.channel('shop', 'shirt.selected').publish({price: 10});
+postal.channel('shop', 'shirt.selected').publish({id: 102, price: 10});
 //duplicate is ignored
-postal.channel('shop', 'shirt.selected').publish({price: 10});
-postal.channel('shop', 'slacks.selected').publish({price: 15});
-postal.channel('shop', 'shoes.selected').publish({price: 20});
+postal.channel('shop', 'shirt.selected').publish({id: 102, price: 10});
+postal.channel('shop', 'slacks.selected').publish({id: 110, price: 15});
+postal.channel('shop', 'shoes.selected').publish({id: 255, price: 20});
 
 //total price is 10 + 15 + 20 = 45
-    </code></pre> 
+    </code></pre>
+
+    <h3><code>distinct()</code></h3>
+
+    <p>
+      In many modern video games a player can earn achievements by performing certain actions within the game.  In role-playing games, for example, players often collect "loot" that they may then use for different purposes.  Some of this "loot" is very valuable, and an achievement might be awarded to a player who collects a certain set of unique items.  The code below uses the subscription's <code>distinct()</code> method to simulate this system and award a player for collecting a full set of armor.  Duplicate items will be ignored by the handler, because the achievement is only awarded when the player collects one type of each item.
+    </p>
+
+    <pre><code>
+var inventory = [];
+
+var c = postal.channel('loot.acquired');
+c.subscribe(function (item) {
+  inventory.push(item);
+  if (inventory.length === 3) {
+    postal.channel('achievement.earned').publish('full.armor.set');
+  }
+}).distinct();
+
+postal.channel('loot.acquired').publish('sword');
+postal.channel('loot.acquired').publish('shield');
+//duplicate ignored
+postal.channel('loot.acquired').publish('sword');
+//duplicate ignored
+postal.channel('loot.acquired').publish('shield');
+postal.channel('loot.acquired').publish('boots');
+//achievement earned!
+    </code></pre>
 
     <h3><code>disposeAfter(maxCalls)</code></h3>
 
@@ -290,7 +317,7 @@ postal.channel('favorite.movies').publish('Star Wars');
     </p>
 
     <p>
-      Although we could add conditional logic in the body of an event handler, postal provides methods whereby we can specify one or more conditions that must be met in order for the event handler to be executed when a publish occurs on the channel.  This keeps the event handler unpolluted with criteria logic that is related to the behavior of the subscription.
+      Although we could add conditional logic in the body of an event handler, postal provides methods whereby we can specify one or more conditions that must be met in order for the event handler to be executed when a publish occurs on the channel.  This keeps the event handler unpolluted with criteria logic that is related to the behavior of the subscription.  In this example I am using a compound condition that tests both data outside of the message handler and the data placed on the bus.
     </p>
 
     <p>
@@ -302,8 +329,8 @@ var speed = 88;
 
 postal.channel('vehicle.accelerated').subscribe(function (passenger) {
   timeTravel(passenger);
-}).<strong>withConstraint(function () {
-  return speed === 88;
+}).<strong>withConstraint(function (passenger) {
+  return speed === 88 && passenger === 'Marty';
 })</strong>;
 
 postal.channel('vehicle.accelerated').publish('Marty');
@@ -358,7 +385,7 @@ postal.channel('coffee.ready').publish({});
     </p>
 
     <p>
-      In the following example I am listening for the <code>window.resize</code> event, which is notoriously noisy.  The event fires often as the user drags the edge of the browser, but I am really only interested in the final size of the viewport when the resizing has been completed.  I use <code>debounce()</code> to delay the invocation of my callback for exactly one second each time a resize message is published to postal.  When the message handler executes, it will receive the <em>last</em> message placed on the bus.
+      In the following example I am listening for the <code>window.resize</code> event, which is notoriously noisy.  The event fires often as the user drags the edge of the browser, but I am really only interested in the final size of the viewport when the resizing has been completed.  I use <code>debounce()</code> to delay the invocation of my callback for exactly one second each time a resize message is published to postal.  When the message handler executes, it will receive the <em>last</em> message placed on the bus.  When I receive that event, I resize the element with an ID value of <code>#movie</code> to be half the height and width of the window.
     </p>
 
     <pre><code>
@@ -632,7 +659,7 @@ $('input[type="checkbox"]').change(function () {
     </p>
 
     <p>
-      On the surface, both of these ideas might appear to be antithetical.  How can hidden or encapsulated code, about which external code must necessarily be agnostic, communicate with the very code it hides from?  By delegating communication to a neutral third party, who acts as a message broker on behalf of all units of code involved.  For JavaScript modules, postal.js excels at this role.  The postal.js API is simple and terse, and sports a powerful set of features that give a developer significant control over how and when messages are handled.  Channels and topics are a convenient way for applications to organize messages, and wildcard subscriptions eliminate the need for overly-granular callbacks.
+      On the surface, both of these ideas might appear to be antithetical.  How can hidden or encapsulated code, about which external code must necessarily be agnostic, communicate with the very code it hides from?  It can do so by delegating communication to a neutral third party, who acts as a message broker on behalf of all units of code involved.  For JavaScript modules, postal.js excels at this role.  The postal.js API is simple and terse, and sports a powerful set of features that give a developer significant control over how and when messages are handled.  Channels and topics are a convenient way for applications to organize messages, and wildcard subscriptions eliminate the need for overly-granular callbacks.
     </p>
 
     <p>
